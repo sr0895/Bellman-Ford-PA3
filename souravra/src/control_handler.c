@@ -73,6 +73,7 @@ int create_control_sock()
         ERROR("listen() failed");
 
     LIST_INIT(&control_conn_list);
+    printf("%s, %d\n", "started listing on  ", CONTROL_PORT);
 
     return sock;
 }

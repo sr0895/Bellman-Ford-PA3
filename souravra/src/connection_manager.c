@@ -54,6 +54,7 @@ void main_loop()
                     /* Add to watched socket list */
                     FD_SET(fdaccept, &master_list);
                     if(fdaccept > head_fd) head_fd = fdaccept;
+                    printf("%s\n", "accept on control");
                 }
 
                 /* router_socket */
