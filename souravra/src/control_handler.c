@@ -27,11 +27,15 @@
 #include <sys/queue.h>
 #include <unistd.h>
 #include <string.h>
+#include <limits.h>
+#include <assert.h>
 
 #include "../include/global.h"
 #include "../include/network_util.h"
 #include "../include/control_header_lib.h"
+#include "../include/control_handler.h"
 #include "../include/author.h"
+#include "../include/connection_manager.h"
 
 #ifndef PACKET_USING_STRUCT
     #define CNTRL_CONTROL_CODE_OFFSET 0x04
@@ -114,6 +118,124 @@ bool isControl(int sock_index)
     return FALSE;
 }
 
+int convert_topology_ntoh() {
+    for (int i = 0; i < 5; ++i)
+    {
+       topology[i].router_id = ntohs(topology[i].router_id);
+       topology[i].routing_port = ntohs(topology[i].routing_port);
+       topology[i].data_port = ntohs(topology[i].data_port);
+       topology[i].link_cost = ntohs(topology[i].link_cost);
+       topology[i].ip_addr = ntohs(topology[i].ip_addr);
+    }
+}
+
+int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
+    uint16_t num_routers; memcpy(&num_routers, cntrl_payload, sizeof(num_routers));
+    num_routers = htons(num_routers);
+    assert(num_routers == 5);
+    
+    memcpy(&periodic_interval, cntrl_payload + sizeof(num_routers), sizeof(periodic_interval));
+    periodic_interval = htons(periodic_interval);
+
+    // update routing table
+
+    printf("patload len %d, size of topology %ld\n", payload_len, sizeof(topology[0]) );
+    assert(((payload_len - sizeof(num_routers) - sizeof(periodic_interval)) / sizeof(topology[0])) == 5);
+    for (int i = 0; i < 5; i++)
+    {
+        int offset = (i * sizeof(topology[0])) + sizeof(num_routers) + sizeof(periodic_interval);
+        
+        uint16_t id; memcpy(&id, cntrl_payload + offset, sizeof(id)); offset+= sizeof(id);
+        
+        topology[id -1].router_id = id;
+
+        memcpy(&topology[id - 1].routing_port, cntrl_payload + offset, sizeof(topology[id-1].routing_port));
+        offset += sizeof(topology[id-1].routing_port);
+        
+        memcpy(&topology[id - 1].data_port, cntrl_payload + offset, sizeof(topology[id-1].data_port));
+        offset += sizeof(topology[id-1].data_port);
+
+        memcpy(&topology[id - 1].link_cost, cntrl_payload + offset, sizeof(topology[id-1].link_cost));
+        offset += sizeof(topology[id-1].link_cost);
+
+        memcpy(&topology[id - 1].ip_addr, cntrl_payload + offset, sizeof(topology[id-1].ip_addr));
+        offset += sizeof(topology[id-1].ip_addr);
+
+        convert_topology_ntoh();
+        printf("converted to host\n");
+
+        if (topology[id - 1].link_cost == 0)
+        {
+            /* me */
+            my_id = id - 1;
+        }
+
+        // setup listner on routing port
+
+        // setup listner on data port
+
+        // init routing table
+        init_routing_table();
+
+        // send ack
+        char *cntrl_response_header;
+        cntrl_response_header = create_response_header(sock_index, 1, 0, 0);
+        sendALL(sock_index, cntrl_response_header, CNTRL_RESP_HEADER_SIZE);
+        printf("sent control resp header of len %d\n", CNTRL_RESP_HEADER_SIZE);
+        free(cntrl_response_header);
+    }
+
+}
+
+int init_routing_table() {
+    printf("init routing table\n");
+    uint16_t my_next_hop = UINT16_MAX;
+    uint16_t cost = UINT16_MAX; 
+    for (uint16_t i = 0; i < 5; ++i)
+    {
+        routing_table[i].router_id = htons(i);
+        if (i != my_id)
+        {
+            routing_table[i].next_hop = htons(UINT16_MAX);
+            routing_table[i].next_hop = htons(UINT16_MAX);
+        }
+
+        if (cost > topology[i].link_cost)
+        {
+            cost = topology[i].link_cost;
+            my_next_hop = i;
+        }
+    }
+    routing_table[my_id].next_hop = htons(my_next_hop);
+}
+
+int send_routing_table(int sock_index) {
+    uint16_t payload_len, response_len;
+    char *cntrl_response_header, *cntrl_response_payload, *cntrl_response;
+
+    payload_len = sizeof(routing_table[0]) * 5;
+    for (int i = 0; i < 5; ++i)
+    {
+        memcpy(cntrl_response_payload + i*sizeof(routing_table[0]), &routing_table[i], sizeof(routing_table[0]));
+    }
+
+    cntrl_response_header = create_response_header(sock_index, 2, 0, payload_len);
+
+    response_len = CNTRL_RESP_HEADER_SIZE+payload_len;
+    cntrl_response = (char *) malloc(response_len);
+    /* Copy Header */
+    memcpy(cntrl_response, cntrl_response_header, CNTRL_RESP_HEADER_SIZE);
+    free(cntrl_response_header);
+    /* Copy Payload */
+    memcpy(cntrl_response+CNTRL_RESP_HEADER_SIZE, cntrl_response_payload, payload_len);
+    free(cntrl_response_payload);
+
+    sendALL(sock_index, cntrl_response, response_len);
+
+    free(cntrl_response);
+}
+
+
 bool control_recv_hook(int sock_index)
 {
     char *cntrl_header, *cntrl_payload;
@@ -167,13 +289,11 @@ bool control_recv_hook(int sock_index)
         case 0: author_response(sock_index);
                 break;
 
-        /* .......
-        case 1: init_response(sock_index, cntrl_payload);
+        case 1: init_response(sock_index, cntrl_payload, payload_len);
                 break;
 
-            .........
-           ....... 
-         ......*/
+        case 2: send_routing_table(sock_index);
+                break;
     }
 
     if(payload_len != 0) free(cntrl_payload);
