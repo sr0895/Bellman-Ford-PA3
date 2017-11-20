@@ -141,8 +141,10 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
 
     printf("patload len %d, size of topology %ld\n", payload_len, sizeof(topology[0]) );
     assert(((payload_len - sizeof(num_routers) - sizeof(periodic_interval)) / sizeof(topology[0])) == 5);
+    printf("assert done\n");
     for (int i = 0; i < 5; i++)
     {
+        printf("server %d\n", i);
         int offset = (i * sizeof(topology[0])) + sizeof(num_routers) + sizeof(periodic_interval);
         
         uint16_t id; memcpy(&id, cntrl_payload + offset, sizeof(id)); offset+= sizeof(id);
