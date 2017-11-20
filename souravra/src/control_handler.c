@@ -146,10 +146,11 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
         printf("server %d\n", i);
         int offset = (i * sizeof(topology[0])) + sizeof(num_routers) + sizeof(periodic_interval);
         
-        uint16_t id; memcpy(&id, cntrl_payload + offset, sizeof(id)); offset+= sizeof(id);
+        uint16_t nid; memcpy(&nid, cntrl_payload + offset, sizeof(id)); offset+= sizeof(id);
+        uint16_t id = ntohs(nid);
         printf("id memcpy done\n");
 
-        topology[id -1].router_id = id;
+        topology[id -1].router_id = nid;
         printf("id assign done\n");
 
         memcpy(&topology[id - 1].routing_port, cntrl_payload + offset, sizeof(topology[id-1].routing_port));
