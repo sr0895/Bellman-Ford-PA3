@@ -141,7 +141,6 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
 
     printf("patload len %d, size of topology %ld\n", payload_len, sizeof(topology[0]) );
     assert(((payload_len - sizeof(num_routers) - sizeof(periodic_interval)) / sizeof(topology[0])) == 5);
-    printf("assert done\n");
     for (int i = 0; i < 5; i++)
     {
         printf("server %d\n", i);
@@ -162,7 +161,7 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
 
         memcpy(&topology[id - 1].ip_addr, cntrl_payload + offset, sizeof(topology[id-1].ip_addr));
         offset += sizeof(topology[id-1].ip_addr);
-
+        printf("all memcpy done\n");
         convert_topology_ntoh();
         printf("converted to host\n");
 
