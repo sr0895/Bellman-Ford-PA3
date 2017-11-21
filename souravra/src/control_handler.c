@@ -147,34 +147,34 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
         int offset = (i * sizeof(topology[0])) + sizeof(num_routers) + sizeof(periodic_interval);
         
         uint16_t nid; memcpy(&nid, cntrl_payload + offset, sizeof(nid)); offset+= sizeof(nid);
-        uint16_t id = ntohs(nid);
+        uint16_t id = ntohs(nid); id %= 5;
         lprint("id memcpy done, id = %d, nid = %d\n", id, nid);
 
-        topology[id -1].router_id = nid;
+        topology[id].router_id = nid;
         lprint("id assign done\n");
 
-        memcpy(&topology[id - 1].routing_port, cntrl_payload + offset, sizeof(topology[id-1].routing_port));
-        offset += sizeof(topology[id-1].routing_port);
+        memcpy(&topology[id].routing_port, cntrl_payload + offset, sizeof(topology[id].routing_port));
+        offset += sizeof(topology[id].routing_port);
         lprint("rport memcpy done\n");
 
-        memcpy(&topology[id - 1].data_port, cntrl_payload + offset, sizeof(topology[id-1].data_port));
-        offset += sizeof(topology[id-1].data_port);
+        memcpy(&topology[id].data_port, cntrl_payload + offset, sizeof(topology[id].data_port));
+        offset += sizeof(topology[id].data_port);
         lprint("dport memcpy done\n");
 
-        memcpy(&topology[id - 1].link_cost, cntrl_payload + offset, sizeof(topology[id-1].link_cost));
-        offset += sizeof(topology[id-1].link_cost);
+        memcpy(&topology[id].link_cost, cntrl_payload + offset, sizeof(topology[id].link_cost));
+        offset += sizeof(topology[id].link_cost);
         lprint("cost memcpy done\n");
 
-        memcpy(&topology[id - 1].ip_addr, cntrl_payload + offset, sizeof(topology[id-1].ip_addr));
-        offset += sizeof(topology[id-1].ip_addr);
+        memcpy(&topology[id].ip_addr, cntrl_payload + offset, sizeof(topology[id].ip_addr));
+        offset += sizeof(topology[id].ip_addr);
         lprint("all memcpy done\n");
         convert_topology_ntoh();
         lprint("converted to host\n");
 
-        if (topology[id - 1].link_cost == 0)
+        if (topology[id].link_cost == 0)
         {
             /* me */
-            my_id = id - 1;
+            my_id = id;
         }
 
         // setup listner on routing port
@@ -200,7 +200,7 @@ int init_routing_table() {
     uint16_t cost = UINT16_MAX; 
     for (uint16_t i = 0; i < 5; ++i)
     {
-        routing_table[i].router_id = htons(i);
+        routing_table[i].router_id = htons(topology[i].router_id);
         if (i != my_id)
         {
             routing_table[i].next_hop = htons(UINT16_MAX);
@@ -210,7 +210,7 @@ int init_routing_table() {
         if (cost > topology[i].link_cost)
         {
             cost = topology[i].link_cost;
-            my_next_hop = i;
+            my_next_hop = topology[i].router_id;
         }
     }
     routing_table[my_id].next_hop = htons(my_next_hop);
