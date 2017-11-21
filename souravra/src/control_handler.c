@@ -148,7 +148,7 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
         
         uint16_t nid; memcpy(&nid, cntrl_payload + offset, sizeof(nid)); offset+= sizeof(nid);
         uint16_t id = ntohs(nid);
-        lprint("id memcpy done, id = %d\n", id);
+        lprint("id memcpy done, id = %d, nid = %d\n", id, nid);
 
         topology[id -1].router_id = nid;
         lprint("id assign done\n");
