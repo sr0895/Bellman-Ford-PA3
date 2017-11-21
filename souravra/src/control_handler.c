@@ -257,6 +257,17 @@ int send_routing_table(int sock_index) {
     free(cntrl_response);
 }
 
+int crash(int sock_index) {
+    running_app = FALSE;
+    remove_control_conn(sock_index);
+
+    // remove all server sockets i.e control, router, data
+    remove_control_conn(control_socket);
+    //remove_control_conn(router_socket);
+    //remove_control_conn(data_socket);
+
+    return 0;
+}
 
 bool control_recv_hook(int sock_index)
 {
@@ -315,6 +326,9 @@ bool control_recv_hook(int sock_index)
                 break;
 
         case 2: send_routing_table(sock_index);
+                break;
+
+        case 4: crash(sock_index);
                 break;
     }
 

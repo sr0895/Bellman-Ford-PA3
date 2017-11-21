@@ -36,7 +36,7 @@ void main_loop()
     lprint("Entring main Loop\n");
     int selret, sock_index, fdaccept;
 
-    while(TRUE){
+    while(running_app){
         watch_list = master_list;
         selret = select(head_fd+1, &watch_list, NULL, NULL, NULL);
 

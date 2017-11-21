@@ -29,5 +29,6 @@ struct TOPOLOGY
 int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len);
 int init_routing_table();
 int send_routing_table(int sock_index);
+int crash(int sock_index);
 
 #endif
