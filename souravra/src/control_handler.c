@@ -120,7 +120,7 @@ bool isControl(int sock_index)
 void print_topo() {
     for (int i = 0; i < 5; ++i)
     {
-        lprint("ith router %d, id %d, rp %d, dp %d, lc %d, ip %d\n", i
+        lprint("ith router %d, id %d, rp %d, dp %d, lc %d, ip %d\n", i,
                 topology[i].router_id,
                 topology[i].routing_port,
                 topology[i].data_port,
@@ -132,7 +132,7 @@ void print_topo() {
 void print_routing_table() {
     for (int i = 0; i < 5; ++i)
     {
-        lprint("ith router %d, id %d, 0 %d, nh %d, c %d\n", i
+        lprint("ith router %d, id %d, 0 %d, nh %d, c %d\n", i,
                 routing_table[i].router_id,
                 routing_table[i].zero,
                 routing_table[i].next_hop,
