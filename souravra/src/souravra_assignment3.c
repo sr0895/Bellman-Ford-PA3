@@ -20,7 +20,7 @@
  *
  * This contains the main function. Add further description here....
  */
-
+#include <stdio.h>
 #include "../include/global.h"
 #include "../include/connection_manager.h"
 
@@ -39,7 +39,10 @@ int main(int argc, char **argv)
 {
 	/*Start Here*/
 	sscanf(argv[1], "%" SCNu16, &CONTROL_PORT);
+	FILE* old = stdout;
+	stdout = fopen("pa3.log", "a");
     init(); // Initialize connection manager; This will block
-
+    fclose(stdout);
+    stdout = old;
 	return 0;
 }
