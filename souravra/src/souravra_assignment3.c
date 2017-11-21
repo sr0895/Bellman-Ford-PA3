@@ -39,10 +39,17 @@ int main(int argc, char **argv)
 {
 	/*Start Here*/
 	sscanf(argv[1], "%" SCNu16, &CONTROL_PORT);
-	FILE* old = stdout;
-	stdout = fopen("pa3.log", "a");
+
+    int stdout_copy = dup(STDOUT_FILENO);
+    fflush(stdout);
+    int nf = fileno(fopen("pa3_red.log","w"));
+    dup2(nf, STDOUT_FILENO);
+
+    /* do something with stdout */
+    printf("test]\n");
     init(); // Initialize connection manager; This will block
-    fclose(stdout);
-    stdout = old;
+    fflush(stdout);
+    dup2(stdout_copy, STDOUT_FILENO);
+    close(stdout_copy);
 	return 0;
 }
