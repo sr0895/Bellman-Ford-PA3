@@ -117,9 +117,32 @@ bool isControl(int sock_index)
 
     return FALSE;
 }
+void print_topo() {
+    for (int i = 0; i < 5; ++i)
+    {
+        lprint("ith router %d, id %d, rp %d, dp %d, lc %d, ip %d\n", i
+                topology[i].router_id,
+                topology[i].routing_port,
+                topology[i].data_port,
+                topology[i].link_cost,
+                topology[i].ip_addr);
+    }
+}
+
+void print_routing_table() {
+    for (int i = 0; i < 5; ++i)
+    {
+        lprint("ith router %d, id %d, 0 %d, nh %d, c %d\n", i
+                routing_table[i].router_id,
+                routing_table[i].zero,
+                routing_table[i].next_hop,
+                routing_table[i].path_cost);
+    }
+}
 
 int init_routing_table() {
-    lprint("init routing table\n");
+    lprint("init routing table, my_id %d\n", my_id);
+    print_topo();
     uint16_t my_next_hop = UINT16_MAX;
     uint16_t cost = UINT16_MAX; 
     for (uint16_t i = 0; i < 5; ++i)
@@ -128,7 +151,7 @@ int init_routing_table() {
         if (i != my_id)
         {
             routing_table[i].next_hop = htons(UINT16_MAX);
-            routing_table[i].next_hop = htons(UINT16_MAX);
+            routing_table[i].path_cost = htons(UINT16_MAX);
         }
 
         if (cost > topology[i].link_cost)
@@ -137,7 +160,10 @@ int init_routing_table() {
             my_next_hop = topology[i].router_id;
         }
     }
+    lprint("my next hop %d, cost %d\n", my_next_hop, cost);
     routing_table[my_id].next_hop = htons(my_next_hop);
+    routing_table[my_id].path_cost = htons(cost);
+    print_routing_table();
 }
 
 int convert_topology_ntoh() {
