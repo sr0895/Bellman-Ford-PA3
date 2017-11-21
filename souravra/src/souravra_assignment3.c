@@ -21,6 +21,8 @@
  * This contains the main function. Add further description here....
  */
 #include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include "../include/global.h"
 #include "../include/connection_manager.h"
 
