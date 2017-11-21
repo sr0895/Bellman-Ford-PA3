@@ -33,6 +33,7 @@ int head_fd;
 
 void main_loop()
 {
+    printf("Entring main Loop\n");
     int selret, sock_index, fdaccept;
 
     while(TRUE){
