@@ -79,6 +79,7 @@ void main_loop()
             }
         }
     }
+    lprint("app stopped .........");
 }
 
 void init()

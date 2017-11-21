@@ -167,6 +167,16 @@ int convert_topology_ntoh() {
     }
 }
 
+int send_rep_header(int sock_index, int control_code) {
+    // send ack
+    char *cntrl_response_header;
+    cntrl_response_header = create_response_header(sock_index, control_code, 0, 0);
+    sendALL(sock_index, cntrl_response_header, CNTRL_RESP_HEADER_SIZE);
+    lprint("sent control resp header of len %d\n", CNTRL_RESP_HEADER_SIZE);
+    free(cntrl_response_header);
+    return 0;
+}
+
 int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
     uint16_t num_routers; memcpy(&num_routers, cntrl_payload, sizeof(num_routers));
     num_routers = htons(num_routers);
@@ -222,12 +232,7 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
     // init routing table
     init_routing_table();
 
-    // send ack
-    char *cntrl_response_header;
-    cntrl_response_header = create_response_header(sock_index, 1, 0, 0);
-    sendALL(sock_index, cntrl_response_header, CNTRL_RESP_HEADER_SIZE);
-    lprint("sent control resp header of len %d\n", CNTRL_RESP_HEADER_SIZE);
-    free(cntrl_response_header);
+    send_rep_header(sock_index, 1);
 }
 
 int send_routing_table(int sock_index) {
@@ -258,14 +263,16 @@ int send_routing_table(int sock_index) {
 }
 
 int crash(int sock_index) {
+    lprint("crashing.............");
     running_app = FALSE;
+    send_rep_header(sock_index, 4);
+
     remove_control_conn(sock_index);
 
     // remove all server sockets i.e control, router, data
     remove_control_conn(control_socket);
     //remove_control_conn(router_socket);
     //remove_control_conn(data_socket);
-
     return 0;
 }
 
