@@ -215,16 +215,15 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
 }
 
 int send_routing_table(int sock_index) {
-    lprint("send_routing_table");
+    lprint("send_routing_table\n");
     uint16_t payload_len, response_len;
     char *cntrl_response_header, *cntrl_response_payload, *cntrl_response;
 
     payload_len = sizeof(routing_table[0]) * 5;
     cntrl_response_payload = (char*)malloc(payload_len);
-    for (int i = 0; i < 5; ++i)
-    {
-        memcpy(cntrl_response_payload + i*sizeof(routing_table[0]), &routing_table[i], sizeof(routing_table[0]));
-    }
+
+    memcpy(cntrl_response_payload, routing_table, payload_len);
+
     lprint("created payload buffer\n");
     cntrl_response_header = create_response_header(sock_index, 2, 0, payload_len);
 
@@ -238,7 +237,7 @@ int send_routing_table(int sock_index) {
     free(cntrl_response_payload);
 
     sendALL(sock_index, cntrl_response, response_len);
-    lprint("sent souttin table\n");
+    lprint("sent routing table, of size %d\n", response_len);
     free(cntrl_response);
 }
 
