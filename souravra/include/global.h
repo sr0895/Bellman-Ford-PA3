@@ -15,7 +15,7 @@ typedef enum {FALSE, TRUE} bool;
 
 uint16_t CONTROL_PORT;
 
-void lprint(const char* line, ...) {
+void lprint(const char* format, ...) {
 	va_list args;
 
    	va_start(args, format);
