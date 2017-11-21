@@ -132,11 +132,11 @@ void print_topo() {
 void print_routing_table() {
     for (int i = 0; i < 5; ++i)
     {
-        lprint("ith router %d, id %d, 0 %d, nh %d, c %d\n", i,
-                routing_table[i].router_id,
-                routing_table[i].zero,
-                routing_table[i].next_hop,
-                routing_table[i].path_cost);
+        lprint("ith topology %d, id %d, 0 %d, nh %d, c %d\n", i,
+                ntohs(routing_table[i].router_id),
+                ntohs(routing_table[i].zero),
+                ntohs(routing_table[i].next_hop),
+                ntohs(routing_table[i].path_cost));
     }
 }
 
@@ -154,7 +154,7 @@ int init_routing_table() {
             routing_table[i].path_cost = htons(UINT16_MAX);
         }
 
-        if (cost > topology[i].link_cost)
+        if ((cost > topology[i].link_cost) && (i != my_id))
         {
             cost = topology[i].link_cost;
             my_next_hop = topology[i].router_id;
