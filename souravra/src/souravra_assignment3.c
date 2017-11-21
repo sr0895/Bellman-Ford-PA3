@@ -44,3 +44,13 @@ int main(int argc, char **argv)
     init(); // Initialize connection manager; This will block]
 	return 0;
 }
+
+void lprint(const char* format, ...) {
+	va_list args;
+
+   	va_start(args, format);
+   	FILE* file = fopen("log_pa3.txt", "a");
+   	vfprintf(file, format, args);
+   	fclose(file);
+   	va_end(args);
+}

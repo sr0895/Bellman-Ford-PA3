@@ -15,14 +15,6 @@ typedef enum {FALSE, TRUE} bool;
 
 uint16_t CONTROL_PORT;
 
-void lprint(const char* format, ...) {
-	va_list args;
-
-   	va_start(args, format);
-   	FILE* file = fopen("log_pa3.txt", "a");
-   	vfprintf(file, format, args);
-   	fclose(file);
-   	va_end(args);
-}
+void lprint(const char* format, ...);
 
 #endif
