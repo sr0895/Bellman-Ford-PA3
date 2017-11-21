@@ -15,7 +15,7 @@ typedef enum {FALSE, TRUE} bool;
 
 uint16_t CONTROL_PORT;
 
-bool running_app = TRUE;
+bool running_app;
 void lprint(const char* format, ...);
 
 #endif
