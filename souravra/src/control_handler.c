@@ -77,7 +77,7 @@ int create_control_sock()
         ERROR("listen() failed");
 
     LIST_INIT(&control_conn_list);
-    printf("%s, %d\n", "started listing on  ", CONTROL_PORT);
+    lprint("%s, %d\n", "started listing on  ", CONTROL_PORT);
 
     return sock;
 }
@@ -139,37 +139,37 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
 
     // update routing table
 
-    printf("patload len %d, size of topology %ld\n", payload_len, sizeof(topology[0]) );
+    lprint("patload len %d, size of topology %ld\n", payload_len, sizeof(topology[0]) );
     assert(((payload_len - sizeof(num_routers) - sizeof(periodic_interval)) / sizeof(topology[0])) == 5);
     for (int i = 0; i < 5; i++)
     {
-        printf("server %d\n", i);
+        lprint("server %d\n", i);
         int offset = (i * sizeof(topology[0])) + sizeof(num_routers) + sizeof(periodic_interval);
         
         uint16_t nid; memcpy(&nid, cntrl_payload + offset, sizeof(nid)); offset+= sizeof(nid);
         uint16_t id = ntohs(nid);
-        printf("id memcpy done\n");
+        lprint("id memcpy done\n");
 
         topology[id -1].router_id = nid;
-        printf("id assign done\n");
+        lprint("id assign done\n");
 
         memcpy(&topology[id - 1].routing_port, cntrl_payload + offset, sizeof(topology[id-1].routing_port));
         offset += sizeof(topology[id-1].routing_port);
-        printf("rport memcpy done\n");
+        lprint("rport memcpy done\n");
 
         memcpy(&topology[id - 1].data_port, cntrl_payload + offset, sizeof(topology[id-1].data_port));
         offset += sizeof(topology[id-1].data_port);
-        printf("dport memcpy done\n");
+        lprint("dport memcpy done\n");
 
         memcpy(&topology[id - 1].link_cost, cntrl_payload + offset, sizeof(topology[id-1].link_cost));
         offset += sizeof(topology[id-1].link_cost);
-        printf("cost memcpy done\n");
+        lprint("cost memcpy done\n");
 
         memcpy(&topology[id - 1].ip_addr, cntrl_payload + offset, sizeof(topology[id-1].ip_addr));
         offset += sizeof(topology[id-1].ip_addr);
-        printf("all memcpy done\n");
+        lprint("all memcpy done\n");
         convert_topology_ntoh();
-        printf("converted to host\n");
+        lprint("converted to host\n");
 
         if (topology[id - 1].link_cost == 0)
         {
@@ -188,14 +188,14 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
         char *cntrl_response_header;
         cntrl_response_header = create_response_header(sock_index, 1, 0, 0);
         sendALL(sock_index, cntrl_response_header, CNTRL_RESP_HEADER_SIZE);
-        printf("sent control resp header of len %d\n", CNTRL_RESP_HEADER_SIZE);
+        lprint("sent control resp header of len %d\n", CNTRL_RESP_HEADER_SIZE);
         free(cntrl_response_header);
     }
 
 }
 
 int init_routing_table() {
-    printf("init routing table\n");
+    lprint("init routing table\n");
     uint16_t my_next_hop = UINT16_MAX;
     uint16_t cost = UINT16_MAX; 
     for (uint16_t i = 0; i < 5; ++i)

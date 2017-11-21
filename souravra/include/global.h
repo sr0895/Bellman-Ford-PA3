@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <stdarg.h>
 
 typedef enum {FALSE, TRUE} bool;
 
@@ -13,5 +14,15 @@ typedef enum {FALSE, TRUE} bool;
 #define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)])) // Interesting stuff to read if you are interested to know how this works
 
 uint16_t CONTROL_PORT;
+
+void lprint(const char* line, ...) {
+	va_list args;
+
+   	va_start(args, format);
+   	FILE* file = fopen("log_pa3.txt", "a");
+   	vfprintf(file, format, args);
+   	fclose(file);
+   	va_end(args);
+}
 
 #endif

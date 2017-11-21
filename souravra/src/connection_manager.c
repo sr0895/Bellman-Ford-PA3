@@ -33,7 +33,7 @@ int head_fd;
 
 void main_loop()
 {
-    printf("Entring main Loop\n");
+    lprint("Entring main Loop\n");
     int selret, sock_index, fdaccept;
 
     while(TRUE){
@@ -55,7 +55,7 @@ void main_loop()
                     /* Add to watched socket list */
                     FD_SET(fdaccept, &master_list);
                     if(fdaccept > head_fd) head_fd = fdaccept;
-                    printf("%s\n", "accept on control");
+                    lprint("%s\n", "accept on control");
                 }
 
                 /* router_socket */

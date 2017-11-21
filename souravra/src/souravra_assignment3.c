@@ -41,17 +41,6 @@ int main(int argc, char **argv)
 {
 	/*Start Here*/
 	sscanf(argv[1], "%" SCNu16, &CONTROL_PORT);
-
-    int stdout_copy = dup(STDOUT_FILENO);
-    fflush(stdout);
-    int nf = fileno(fopen("pa3_red.log","w"));
-    dup2(nf, STDOUT_FILENO);
-
-    /* do something with stdout */
-    printf("test]\n");
-    init(); // Initialize connection manager; This will block
-    fflush(stdout);
-    dup2(stdout_copy, STDOUT_FILENO);
-    close(stdout_copy);
+    init(); // Initialize connection manager; This will block]
 	return 0;
 }
