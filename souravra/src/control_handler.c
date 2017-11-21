@@ -141,40 +141,39 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
 
     lprint("patload len %d, size of topology %ld\n", payload_len, sizeof(topology[0]) );
     assert(((payload_len - sizeof(num_routers) - sizeof(periodic_interval)) / sizeof(topology[0])) == 5);
-    for (int i = 0; i < 5; i++)
+    for (uint16_t i = 0; i < 5; i++)
     {
         lprint("server %d\n", i);
         int offset = (i * sizeof(topology[0])) + sizeof(num_routers) + sizeof(periodic_interval);
         
         uint16_t nid; memcpy(&nid, cntrl_payload + offset, sizeof(nid)); offset+= sizeof(nid);
-        uint16_t id = ntohs(nid); id %= 5;
-        lprint("id memcpy done, id = %d, nid = %d\n", id, nid);
+        lprint("id memcpy done, id = %d, nid = %d\n", i, nid);
 
-        topology[id].router_id = nid;
+        topology[i].router_id = nid;
         lprint("id assign done\n");
 
-        memcpy(&topology[id].routing_port, cntrl_payload + offset, sizeof(topology[id].routing_port));
-        offset += sizeof(topology[id].routing_port);
+        memcpy(&topology[i].routing_port, cntrl_payload + offset, sizeof(topology[i].routing_port));
+        offset += sizeof(topology[i].routing_port);
         lprint("rport memcpy done\n");
 
-        memcpy(&topology[id].data_port, cntrl_payload + offset, sizeof(topology[id].data_port));
-        offset += sizeof(topology[id].data_port);
+        memcpy(&topology[i].data_port, cntrl_payload + offset, sizeof(topology[i].data_port));
+        offset += sizeof(topology[i].data_port);
         lprint("dport memcpy done\n");
 
-        memcpy(&topology[id].link_cost, cntrl_payload + offset, sizeof(topology[id].link_cost));
-        offset += sizeof(topology[id].link_cost);
+        memcpy(&topology[i].link_cost, cntrl_payload + offset, sizeof(topology[i].link_cost));
+        offset += sizeof(topology[i].link_cost);
         lprint("cost memcpy done\n");
 
-        memcpy(&topology[id].ip_addr, cntrl_payload + offset, sizeof(topology[id].ip_addr));
-        offset += sizeof(topology[id].ip_addr);
+        memcpy(&topology[i].ip_addr, cntrl_payload + offset, sizeof(topology[i].ip_addr));
+        offset += sizeof(topology[i].ip_addr);
         lprint("all memcpy done\n");
         convert_topology_ntoh();
         lprint("converted to host\n");
 
-        if (topology[id].link_cost == 0)
+        if (topology[i].link_cost == 0)
         {
             /* me */
-            my_id = id;
+            my_id = i;
         }
 
         // setup listner on routing port
@@ -217,15 +216,17 @@ int init_routing_table() {
 }
 
 int send_routing_table(int sock_index) {
+    lprint("send_routing_table");
     uint16_t payload_len, response_len;
     char *cntrl_response_header, *cntrl_response_payload, *cntrl_response;
 
     payload_len = sizeof(routing_table[0]) * 5;
+    cntrl_response_payload = (char*)malloc(payload_len);
     for (int i = 0; i < 5; ++i)
     {
         memcpy(cntrl_response_payload + i*sizeof(routing_table[0]), &routing_table[i], sizeof(routing_table[0]));
     }
-
+    lprint("created payload buffer\n");
     cntrl_response_header = create_response_header(sock_index, 2, 0, payload_len);
 
     response_len = CNTRL_RESP_HEADER_SIZE+payload_len;
@@ -238,7 +239,7 @@ int send_routing_table(int sock_index) {
     free(cntrl_response_payload);
 
     sendALL(sock_index, cntrl_response, response_len);
-
+    lprint("sent souttin table\n");
     free(cntrl_response);
 }
 
