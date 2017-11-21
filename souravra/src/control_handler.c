@@ -118,6 +118,28 @@ bool isControl(int sock_index)
     return FALSE;
 }
 
+int init_routing_table() {
+    lprint("init routing table\n");
+    uint16_t my_next_hop = UINT16_MAX;
+    uint16_t cost = UINT16_MAX; 
+    for (uint16_t i = 0; i < 5; ++i)
+    {
+        routing_table[i].router_id = htons(topology[i].router_id);
+        if (i != my_id)
+        {
+            routing_table[i].next_hop = htons(UINT16_MAX);
+            routing_table[i].next_hop = htons(UINT16_MAX);
+        }
+
+        if (cost > topology[i].link_cost)
+        {
+            cost = topology[i].link_cost;
+            my_next_hop = topology[i].router_id;
+        }
+    }
+    routing_table[my_id].next_hop = htons(my_next_hop);
+}
+
 int convert_topology_ntoh() {
     for (int i = 0; i < 5; ++i)
     {
@@ -167,52 +189,29 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
         memcpy(&topology[i].ip_addr, cntrl_payload + offset, sizeof(topology[i].ip_addr));
         offset += sizeof(topology[i].ip_addr);
         lprint("all memcpy done\n");
-        convert_topology_ntoh();
-        lprint("converted to host\n");
 
         if (topology[i].link_cost == 0)
         {
             /* me */
             my_id = i;
         }
-
-        // setup listner on routing port
-
-        // setup listner on data port
-
-        // init routing table
-        init_routing_table();
-
-        // send ack
-        char *cntrl_response_header;
-        cntrl_response_header = create_response_header(sock_index, 1, 0, 0);
-        sendALL(sock_index, cntrl_response_header, CNTRL_RESP_HEADER_SIZE);
-        lprint("sent control resp header of len %d\n", CNTRL_RESP_HEADER_SIZE);
-        free(cntrl_response_header);
     }
 
-}
+    convert_topology_ntoh();
+    lprint("converted to host\n");
+    // setup listner on routing port
 
-int init_routing_table() {
-    lprint("init routing table\n");
-    uint16_t my_next_hop = UINT16_MAX;
-    uint16_t cost = UINT16_MAX; 
-    for (uint16_t i = 0; i < 5; ++i)
-    {
-        routing_table[i].router_id = htons(topology[i].router_id);
-        if (i != my_id)
-        {
-            routing_table[i].next_hop = htons(UINT16_MAX);
-            routing_table[i].next_hop = htons(UINT16_MAX);
-        }
+    // setup listner on data port
 
-        if (cost > topology[i].link_cost)
-        {
-            cost = topology[i].link_cost;
-            my_next_hop = topology[i].router_id;
-        }
-    }
-    routing_table[my_id].next_hop = htons(my_next_hop);
+    // init routing table
+    init_routing_table();
+
+    // send ack
+    char *cntrl_response_header;
+    cntrl_response_header = create_response_header(sock_index, 1, 0, 0);
+    sendALL(sock_index, cntrl_response_header, CNTRL_RESP_HEADER_SIZE);
+    lprint("sent control resp header of len %d\n", CNTRL_RESP_HEADER_SIZE);
+    free(cntrl_response_header);
 }
 
 int send_routing_table(int sock_index) {
