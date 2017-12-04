@@ -147,7 +147,7 @@ bool isControl(int sock_index)
 void print_topo() {
     for (int i = 0; i < 5; ++i)
     {
-        lprint("ith topology %d, id %d, rp %d, dp %d, lc %d, ip %d\n", i,
+        lprint("ith topology %d, id %d, rp %d, dp %d, lc %d, ip %lld\n", i,
                 topology[i].router_id,
                 topology[i].routing_port,
                 topology[i].data_port,
@@ -190,7 +190,7 @@ int convert_topology_ntoh() {
        topology[i].routing_port = ntohs(topology[i].routing_port);
        topology[i].data_port = ntohs(topology[i].data_port);
        topology[i].link_cost = ntohs(topology[i].link_cost);
-       topology[i].ip_addr = ntohs(topology[i].ip_addr);
+       topology[i].ip_addr = ntohl(topology[i].ip_addr);
     }
 }
 
@@ -388,12 +388,12 @@ char* get_distace_vector_tosend() {
     memcpy(distance_vector + offset, &r_p, sizeof(topology[my_id].routing_port));
     offset += sizeof(topology[my_id].routing_port);
 
-    uint32_t i_p = htons(topology[my_id].ip_addr);
+    uint32_t i_p = htonl(topology[my_id].ip_addr);
     memcpy(distance_vector + offset, &i_p, sizeof(topology[my_id].ip_addr));
     offset += sizeof(topology[my_id].ip_addr);
 
     for (int i = 0; i < 5; i++) {
-        i_p = htons(topology[ntohs(routing_table[i].router_id)].ip_addr);
+        i_p = htonl(topology[ntohs(routing_table[i].router_id)].ip_addr);
         memcpy(distance_vector + offset, &i_p, sizeof(topology[i].ip_addr));
         offset += sizeof(topology[i].ip_addr);
 

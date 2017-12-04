@@ -63,7 +63,7 @@ ssize_t sendALL(int sock_index, char *buffer, ssize_t nbytes)
     ssize_t bytes = 0;
     bytes = send(sock_index, buffer, nbytes, 0);
 
-    if(bytes == 0) return -1;
+    if(bytes <= 0) return -1;
     while(bytes != nbytes)
         bytes += send(sock_index, buffer+bytes, nbytes-bytes, 0);
 
@@ -92,7 +92,7 @@ ssize_t sendtoALL(char *buffer, ssize_t nbytes, uint32_t ip, uint16_t port)
     inet_ntop(AF_INET, &(ip4addr.sin_addr), str, INET_ADDRSTRLEN);
     lprint("initial send %d, outof %d tp %ld, ip %s\n", bytes, nbytes, port, str);
 
-    if(bytes == 0) return -1;
+    if(bytes <= 0) return -1;
     while(bytes != nbytes)
         bytes += sendto(sockfd, buffer+bytes, nbytes-bytes, 0, to, sizeof(to));
     lprint("sent all");
