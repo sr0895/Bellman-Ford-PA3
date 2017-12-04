@@ -104,11 +104,11 @@ int create_router_sock(uint16_t routing_port) {
     if(bind(sock, (struct sockaddr *)&rountng_addr, sizeof(rountng_addr)) < 0)
         ERROR("bind() failed");
 
+    lprint("routing socket bound on port %ld\n", routing_port);
     if(listen(sock, 5) < 0)
         ERROR("listen() failed");
 
-    LIST_INIT(&control_conn_list);
-    lprint("%s, %d\n", "started listing on  ", routing_port);
+    lprint("%s, %d\n", "started listing on routing port ", routing_port);
 
     return sock;
 }
@@ -424,6 +424,7 @@ void handle_timer_event() {
 }
 
 void send_routing_table_to_peers() {
+    lprint("sending my routing table to ppers\n");
     char* distance_vector = get_distace_vector_tosend();
     for (int i = 0; i < 5; i++) {
         if(topology[i].link_cost < UINT16_MAX) {
