@@ -54,7 +54,7 @@ ssize_t recvfromALL(int sock_index, char *buffer, ssize_t nbytes)
     if(bytes == 0) return -1;
     while(bytes != nbytes)
         bytes += recvfrom(sock_index, buffer+bytes, nbytes-bytes, 0, (struct sockaddr*) &addr, &fromlen);
-    lprint("recived from all\n")
+    lprint("recived from all\n");
     return bytes;
 }
 
