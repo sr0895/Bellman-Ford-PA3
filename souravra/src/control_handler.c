@@ -443,6 +443,7 @@ void update_routing_table(char* distance_vector) {
     //sanity check
     uint16_t num_routers; memcpy(&num_routers, distance_vector, sizeof(num_routers));
     num_routers = htons(num_routers);
+    lprint("recived num router = %d\n", num_routers);
     assert(num_routers == 5);
 
     uint16_t sender_port; memcpy(&sender_port, distance_vector + sizeof(num_routers), sizeof(sender_port));
