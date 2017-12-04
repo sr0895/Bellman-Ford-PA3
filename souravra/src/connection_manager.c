@@ -44,7 +44,7 @@ void main_loop()
             ERROR("select failed.");
 
         /* Loop through file descriptors to check which ones are ready */
-        for(sock_index=0; sock_index<=head_fd; sock_index+=1){
+        for(sock_index=0; sock_index<=head_fd; sock_index+=1, &periodic_timer){
 
             if(FD_ISSET(sock_index, &watch_list)){
 
@@ -66,6 +66,7 @@ void main_loop()
                 /* data_socket */
                 else if(sock_index == data_socket){
                     //new_data_conn(sock_index);
+                    routing_recv_hook();
                 }
 
                 /* Existing connection */
@@ -76,6 +77,9 @@ void main_loop()
                     //else if isData(sock_index);
                     else ERROR("Unknown socket index");
                 }
+            } else {
+                lprint("Timer has fired");
+                handle_timer_event();
             }
         }
     }

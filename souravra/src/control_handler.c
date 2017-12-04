@@ -82,6 +82,37 @@ int create_control_sock()
     return sock;
 }
 
+int create_router_sock(uint16_t routing_port) {
+    int sock;
+    struct sockaddr_in rountng_addr;
+    socklen_t addrlen = sizeof(rountng_addr);
+
+    sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if(sock < 0)
+        ERROR("socket() failed");
+
+    /* Make socket re-usable */
+    if(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (int[]){1}, sizeof(int)) < 0)
+        ERROR("setsockopt() failed");
+
+    bzero(&rountng_addr, sizeof(rountng_addr));
+
+    rountng_addr.sin_family = AF_INET;
+    rountng_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    rountng_addr.sin_port = htons(routing_port);
+
+    if(bind(sock, (struct sockaddr *)&rountng_addr, sizeof(rountng_addr)) < 0)
+        ERROR("bind() failed");
+
+    if(listen(sock, 5) < 0)
+        ERROR("listen() failed");
+
+    LIST_INIT(&control_conn_list);
+    lprint("%s, %d\n", "started listing on  ", routing_port);
+
+    return sock;
+}
+
 int new_control_conn(int sock_index)
 {
     int fdaccept, caddr_len;
@@ -184,10 +215,14 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
     
     memcpy(&periodic_interval, cntrl_payload + sizeof(num_routers), sizeof(periodic_interval));
     periodic_interval = htons(periodic_interval);
+    lprint("periodic_interval %ld\n", periodic_interval)
+
+    // set periodic timer
+    periodic_timer.tv_sec = periodic_interval;
 
     // update routing table
 
-    lprint("patload len %d, size of topology %ld\n", payload_len, sizeof(topology[0]) );
+    lprint("payload len %d, size of topology %ld\n", payload_len, sizeof(topology[0]) );
     assert(((payload_len - sizeof(num_routers) - sizeof(periodic_interval)) / sizeof(topology[0])) == 5);
     for (uint16_t i = 0; i < 5; i++)
     {
@@ -226,6 +261,7 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
     convert_topology_ntoh();
     lprint("converted to host\n");
     // setup listner on routing port
+    router_socket = create_router_sock();
 
     // setup listner on data port
 
@@ -341,4 +377,116 @@ bool control_recv_hook(int sock_index)
 
     if(payload_len != 0) free(cntrl_payload);
     return TRUE;
+}
+
+char* get_distace_vector_tosend() {
+    char* distance_vector = (char* )malloc(DISTANCE_VECTOR_SIZE);
+    int offset = 0;
+    uint16_t num_router = 5;
+
+    memcpy(distance_vector + offset, &htons(num_router), sizeof(num_router));
+    offset += sizeof(num_router);
+
+    memcpy(distance_vector + offset, &htons(topology[my_id].routing_port), sizeof(topology[my_id].routing_port));
+    offset += sizeof(topology[my_id].routing_port);
+
+    memcpy(distance_vector + offset, &htons(topology[my_id].ip_addr), sizeof(topology[my_id].ip_addr));
+    offset += sizeof(topology[my_id].ip_addr);
+
+    for (int i = 0; i < 5; i++) {
+        memcpy(distance_vector + offset, &htons(topology[ntohs(routing_table[i].router_id)].ip_addr), sizeof(topology[i].ip_addr));
+        offset += sizeof(topology[i].ip_addr);
+
+        memcpy(distance_vector + offset, &htons(topology[ntohs(routing_table[i].router_id)].routing_port), sizeof(topology[i].routing_port));
+        offset += sizeof(topology[i].routing_port);
+
+        memcpy(distance_vector + offset, &0, sizeof(num_router));
+        offset += sizeof(num_router);
+
+        memcpy(distance_vector + offset, &routing_table[i].router_id, sizeof(routing_table[i].router_id)); // routing table is in ntoh
+        offset += sizeof(routing_table[i].router_id);
+
+        memcpy(distance_vector + offset, &routing_table[i].path_cost, sizeof(routing_table[i].path_cost));
+        offset += sizeof(routing_table[i].path_cost);
+    }
+
+    return distance_vector;
+}
+
+void handle_timer_event() {
+    if (!periodic_interval) return;
+    send_routing_table_to_peers();
+}
+
+void send_routing_table_to_peers() {
+    char* distance_vector = get_distace_vector_tosend();
+    for (int i = 0; i < 5; i++) {
+        if(topology[i].link_cost < UINT16_MAX) {
+            lprint("router %ls is peer, sending distance vevtor to it\n", topology[i].router_id);
+            assert(sendtoAll(distance_vector, DISTANCE_VECTOR_SIZE, topology[i].ip_addr, topology[i].routing_port) == DISTANCE_VECTOR_SIZE);
+        }
+    }
+}
+
+bool routing_recv_hook() {
+    char* distance_vector = (char* )malloc(DISTANCE_VECTOR_SIZE);
+    assert(recvfromALL(routing_port, distance_vector, DISTANCE_VECTOR_SIZE) == DISTANCE_VECTOR_SIZE);
+    update_routing_table(distance_vector);
+}
+
+void update_routing_table(char* distance_vector) {
+    //sanity check
+    uint16_t num_routers; memcpy(&num_routers, distance_vector, sizeof(num_routers));
+    num_routers = htons(num_routers);
+    assert(num_routers == 5);
+
+    uint16_t sender_port = memcpy(&sender_port, distance_vector + sizeof(num_routers), sizeof(sender_port));
+    sender_port = ntohs(sender_port);
+    
+    // find sender id
+    uint16_t sender_id = 0;
+    for (sender_id; i < 5; sender_id++) {
+        if(sender_port == topology[sender_port].routing_port) {
+            sender_id = topology[sender_port].router_id;
+            lprint("get distace distance_vector from %ld on port %ld\n", sender_id, sender_port);
+            break;
+        }
+    }
+
+    // find my cost to sender
+    uint16_t cost_to_sender;
+    for (int i = 0; i < 5; i++) {
+        if(routing_table[i].router_id == htons(sender_id)) {
+            cost_to_sender = ntohs(routing_table[i].path_cost);
+        }
+    }
+
+
+    int offset = 8; // 8 bytes into buffer
+    for (int i = 0; i < 5; i++) {
+        offset +  = 8; // only inetersted in id and cost
+        uint16_t hop_id;memcpy(&hop_id, distance_vector + offset, sizeof(hop_id)); //routing table has is in network format
+        offset += sizeof(hop_id);
+
+        uint16_t hop_cost;memcpy(&hop_cost, distance_vector + offset, sizeof(hop_cost)); hop_cost = ntohs(hop_cost);
+        offset += sizeof(hop_cost);
+
+        // need to find my cost to hop_id
+        int j = 0;
+        for (j; j < 5; j++) {
+            if(routing_table[j].router_id == hop_id) break;
+        }
+
+        uint16_t my_cost_to_hop = ntohs(routing_table[j].path_cost);
+
+        //bellman ford
+        uint16_t path_cost_via_peer = cost_to_sender + hop_cost;
+
+        if(path_cost_via_peer < my_cost_to_hop) {
+            lprint("found new path to %ld via %ld at cost %ld\n", ntohs(hop_id), sender_id, path_cost_via_peer);
+            // update routing table
+            routing_table[j].next_hop = htons(sender_id); // keep network format
+            routing_table[j].path_cost = htons(path_cost_via_peer);
+        }
+    }    
 }

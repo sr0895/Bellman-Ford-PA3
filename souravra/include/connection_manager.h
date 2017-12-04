@@ -5,6 +5,7 @@
 int control_socket, router_socket, data_socket;
 uint16_t periodic_interval;
 int my_id; // -1
+struct timeval periodic_timer = {0, 0};
 
 void init();
 

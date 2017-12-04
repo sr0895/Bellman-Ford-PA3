@@ -39,19 +39,19 @@
  */
 int main(int argc, char **argv)
 {
-	/*Start Here*/
-	sscanf(argv[1], "%" SCNu16, &CONTROL_PORT);
-	running_app = TRUE;
+  /*Start Here*/
+    sscanf(argv[1], "%" SCNu16, &CONTROL_PORT);
+    running_app = TRUE;
     init(); // Initialize connection manager; This will block]
-	return 0;
+    return 0;
 }
 
 void lprint(const char* format, ...) {
-	va_list args;
+    va_list args;
 
-   	va_start(args, format);
-   	FILE* file = fopen("log_pa3.txt", "a");
-   	vfprintf(file, format, args);
-   	fclose(file);
-   	va_end(args);
+    va_start(args, format);
+    FILE* file = fopen("log_pa3.txt", "a");
+    vfprintf(file, format, args);
+    fclose(file);
+    va_end(args);
 }
