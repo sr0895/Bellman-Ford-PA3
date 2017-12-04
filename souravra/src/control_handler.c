@@ -443,17 +443,18 @@ void update_routing_table(char* distance_vector) {
     //sanity check
     uint16_t num_routers; memcpy(&num_routers, distance_vector, sizeof(num_routers));
     num_routers = htons(num_routers);
-    lprint("recived num router = %d\n", num_routers);
     assert(num_routers == 5);
 
     uint16_t sender_port; memcpy(&sender_port, distance_vector + sizeof(num_routers), sizeof(sender_port));
+    lprint("s_p_n %d\n", sender_port);
     sender_port = ntohs(sender_port);
-    
+    lprint("s_p_h %d\n", sender_port);
+
     // find sender id
     uint16_t sender_id = 0;
     for (sender_id; sender_id < 5; sender_id++) {
-        if(sender_port == topology[sender_port].routing_port) {
-            sender_id = topology[sender_port].router_id;
+        if(sender_port == topology[sender_id].routing_port) {
+            sender_id = topology[sender_id].router_id;
             lprint("get distace distance_vector from %ld on port %ld\n", sender_id, sender_port);
             break;
         }
@@ -464,6 +465,7 @@ void update_routing_table(char* distance_vector) {
     for (int i = 0; i < 5; i++) {
         if(routing_table[i].router_id == htons(sender_id)) {
             cost_to_sender = ntohs(routing_table[i].path_cost);
+            lprint("cost to sender %d\n",cost_to_sender);
         }
     }
 
