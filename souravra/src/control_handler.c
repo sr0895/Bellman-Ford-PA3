@@ -433,6 +433,7 @@ void send_routing_table_to_peers() {
 }
 
 bool routing_recv_hook() {
+    lprint("got routing update\n");
     char* distance_vector = (char* )malloc(DISTANCE_VECTOR_SIZE);
     assert(recvfromALL(router_socket, distance_vector, DISTANCE_VECTOR_SIZE) == DISTANCE_VECTOR_SIZE);
     update_routing_table(distance_vector);

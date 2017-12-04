@@ -58,12 +58,12 @@ void main_loop()
                 /* router_socket */
                 else if(sock_index == router_socket){
                     //call handler that will call recvfrom() .....
+                    routing_recv_hook();
                 }
 
                 /* data_socket */
                 else if(sock_index == data_socket){
                     //new_data_conn(sock_index);
-                    routing_recv_hook();
                 }
 
                 /* Existing connection */

@@ -89,11 +89,11 @@ ssize_t sendtoALL(char *buffer, ssize_t nbytes, uint32_t ip, uint16_t port)
 
     char str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(ip4addr.sin_addr), str, INET_ADDRSTRLEN);
-    lprint("initial send %d, outof %d tp %ld, ip %s\n", bytes, nbytes, port, str);
+    lprint("initial send bytes %d, outof %d tp %ld, ip %s\n", bytes, nbytes, port, str);
 
     if(bytes <= 0) return -1;
     while(bytes != nbytes)
         bytes += sendto(sockfd, buffer+bytes, nbytes-bytes, 0, to, sizeof(ip4addr));
-    lprint("sent all");
+    lprint("sent all\n");
     return bytes;
 }
