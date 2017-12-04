@@ -70,9 +70,9 @@ ssize_t sendALL(int sock_index, char *buffer, ssize_t nbytes)
     return bytes;
 }
 
-ssize_t sendtoALL(int sock_index, char *buffer, ssize_t nbytes, uint32_t ip, uint16_t port)
+ssize_t sendtoALL(char *buffer, ssize_t nbytes, uint32_t ip, uint16_t port)
 {
-
+    int sockfd;
     struct sockaddr_in ip4addr;
 
     ip4addr.sin_family = AF_INET;
@@ -80,15 +80,19 @@ ssize_t sendtoALL(int sock_index, char *buffer, ssize_t nbytes, uint32_t ip, uin
     ip4addr.sin_addr.s_addr = htonl(ip);
     struct sockaddr* to =  (struct sockaddr*)&ip4addr;
 
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0) 
+        ERROR("ERROR opening UDP socket");
+
     ssize_t bytes = 0;
-    bytes = sendto(sock_index, buffer, nbytes, 0, to, sizeof(to));
+    bytes = sendto(sockfd, buffer, nbytes, 0, to, sizeof(to));
     char str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(ip4addr.sin_addr), str, INET_ADDRSTRLEN);
     lprint("initial send %d, outof %d tp %ld, ip %s\n", bytes, nbytes, port, str);
 
     if(bytes <= 0) return -1;
     while(bytes != nbytes)
-        bytes += sendto(sock_index, buffer+bytes, nbytes-bytes, 0, to, sizeof(to));
+        bytes += sendto(sockfd, buffer+bytes, nbytes-bytes, 0, to, sizeof(to));
     lprint("sent all");
     return bytes;
 }
