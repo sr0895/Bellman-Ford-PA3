@@ -51,7 +51,7 @@ void lprint(const char* format, ...) {
     va_list args;
 
     va_start(args, format);
-    FILE* file = fopen("log_pa3.txt", "a");
+    FILE* file = fopen("log_pa3.txt", "w");
     vfprintf(file, format, args);
     fclose(file);
     va_end(args);

@@ -33,7 +33,7 @@ int head_fd;
 
 void main_loop()
 {
-    lprint("Entring main Loop\n");
+    lprint("****************** Entring main Loop ***********************************\n");
     int selret, sock_index, fdaccept;
 
     while(running_app){
@@ -78,12 +78,12 @@ void main_loop()
                     else ERROR("Unknown socket index");
                 }
             } else {
-                lprint("Timer has fired");
+                lprint("Timer has fired\n");
                 handle_timer_event();
             }
         }
     }
-    lprint("app stopped .........");
+    lprint("app stopped .........\n");
 }
 
 void init()
