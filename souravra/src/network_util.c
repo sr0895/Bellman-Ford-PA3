@@ -77,7 +77,7 @@ ssize_t sendtoALL(char *buffer, ssize_t nbytes, uint32_t ip, uint16_t port)
 
     ip4addr.sin_family = AF_INET;
     ip4addr.sin_port = htons(port);
-    ip4addr.sin_addr.s_addr = htons(ip);
+    ip4addr.sin_addr.s_addr = htonl(ip);
     struct sockaddr* to =  (struct sockaddr*)&ip4addr;
 
     int sockfd;
@@ -88,10 +88,13 @@ ssize_t sendtoALL(char *buffer, ssize_t nbytes, uint32_t ip, uint16_t port)
 
     ssize_t bytes = 0;
     bytes = sendto(sockfd, buffer, nbytes, 0, to, sizeof(to));
+    char str[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(ip4addr.sin_addr), str, INET_ADDRSTRLEN);
+    lprint("initial send %d, outof %d tp %ld, ip %s\n", bytes, nbytes, port, str);
 
     if(bytes == 0) return -1;
     while(bytes != nbytes)
         bytes += sendto(sockfd, buffer+bytes, nbytes-bytes, 0, to, sizeof(to));
-
+    lprint("sent all");
     return bytes;
 }
