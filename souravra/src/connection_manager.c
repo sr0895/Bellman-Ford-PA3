@@ -28,9 +28,6 @@
 #include "../include/global.h"
 #include "../include/control_handler.h"
 
-fd_set master_list, watch_list;
-int head_fd;
-
 void main_loop()
 {
     lprint("****************** Entring main Loop ***********************************\n");

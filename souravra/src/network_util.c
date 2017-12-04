@@ -85,14 +85,15 @@ ssize_t sendtoALL(char *buffer, ssize_t nbytes, uint32_t ip, uint16_t port)
         ERROR("ERROR opening UDP socket");
 
     ssize_t bytes = 0;
-    bytes = sendto(sockfd, buffer, nbytes, 0, to, sizeof(to));
+    bytes = sendto(sockfd, buffer, nbytes, 0, to, sizeof(ip4addr));
+
     char str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(ip4addr.sin_addr), str, INET_ADDRSTRLEN);
     lprint("initial send %d, outof %d tp %ld, ip %s\n", bytes, nbytes, port, str);
 
     if(bytes <= 0) return -1;
     while(bytes != nbytes)
-        bytes += sendto(sockfd, buffer+bytes, nbytes-bytes, 0, to, sizeof(to));
+        bytes += sendto(sockfd, buffer+bytes, nbytes-bytes, 0, to, sizeof(ip4addr));
     lprint("sent all");
     return bytes;
 }
