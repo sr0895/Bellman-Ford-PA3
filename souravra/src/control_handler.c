@@ -449,7 +449,7 @@ void update_routing_table(char* distance_vector) {
     
     // find sender id
     uint16_t sender_id = 0;
-    for (sender_id; i < 5; sender_id++) {
+    for (sender_id; sender_id < 5; sender_id++) {
         if(sender_port == topology[sender_port].routing_port) {
             sender_id = topology[sender_port].router_id;
             lprint("get distace distance_vector from %ld on port %ld\n", sender_id, sender_port);
@@ -468,7 +468,7 @@ void update_routing_table(char* distance_vector) {
 
     int offset = 8; // 8 bytes into buffer
     for (int i = 0; i < 5; i++) {
-        offset +  = 8; // only inetersted in id and cost
+        offset += 8; // only inetersted in id and cost
         uint16_t hop_id;memcpy(&hop_id, distance_vector + offset, sizeof(hop_id)); //routing table has is in network format
         offset += sizeof(hop_id);
 
