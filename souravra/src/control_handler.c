@@ -479,6 +479,8 @@ void update_routing_table(char* distance_vector) {
         uint16_t hop_cost;memcpy(&hop_cost, distance_vector + offset, sizeof(hop_cost)); hop_cost = ntohs(hop_cost);
         offset += sizeof(hop_cost);
 
+        if (hop_cost == UINT16_MAX) continue;
+
         // need to find my cost to hop_id
         int j = 0;
         for (j; j < 5; j++) {
