@@ -105,10 +105,6 @@ int create_router_sock(uint16_t routing_port) {
         ERROR("bind() failed");
 
     lprint("routing socket bound on port %ld\n", routing_port);
-    if(listen(sock, 5) < 0)
-        ERROR("listen() failed");
-
-    lprint("%s, %d\n", "started listing on routing port ", routing_port);
 
     return sock;
 }
