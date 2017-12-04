@@ -426,7 +426,7 @@ void send_routing_table_to_peers() {
     for (int i = 0; i < 5; i++) {
         if((topology[i].link_cost < UINT16_MAX) && (topology[i].link_cost > 0)) {
             lprint("router %ld is peer, sending distance vector to it\n", topology[i].router_id);
-            assert(sendtoALL(distance_vector, DISTANCE_VECTOR_SIZE, topology[i].ip_addr, topology[i].routing_port) == DISTANCE_VECTOR_SIZE);
+            assert(sendtoALL(router_socket, distance_vector, DISTANCE_VECTOR_SIZE, topology[i].ip_addr, topology[i].routing_port) == DISTANCE_VECTOR_SIZE);
         }
     }
 }
