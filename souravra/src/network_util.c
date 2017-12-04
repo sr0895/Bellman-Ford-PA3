@@ -30,6 +30,8 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
+#include "../include/global.h"
+
 ssize_t recvALL(int sock_index, char *buffer, ssize_t nbytes)
 {
     ssize_t bytes = 0;
@@ -47,7 +49,7 @@ ssize_t recvfromALL(int sock_index, char *buffer, ssize_t nbytes)
     struct sockaddr_in addr;
     socklen_t fromlen = sizeof(addr);
     ssize_t bytes = 0;
-    bytes = recvfrom(sock_index, buffer, nbytes, 0, &addr, &fromlen);
+    bytes = recvfrom(sock_index, buffer, nbytes, 0, (struct sockaddr*) &addr, &fromlen);
 
     if(bytes == 0) return -1;
     while(bytes != nbytes)
@@ -75,12 +77,12 @@ ssize_t sendtoALL(char *buffer, ssize_t nbytes, uint32_t ip, uint16_t port)
 
     ip4addr.sin_family = AF_INET;
     ip4addr.sin_port = htons(port);
-    ip4addr.sin_addr.sin_addr = htons(ip);
+    ip4addr.sin_addr.s_addr = htons(ip);
     struct sockaddr* to =  (struct sockaddr*)&ip4addr;
 
     int sockfd;
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
-        perror("failed to creater UDP socket");
+        ERROR("failed to creater UDP socket");
         exit(1);
     }
 
