@@ -361,7 +361,7 @@ bool control_recv_hook(int sock_index)
     }
 
     /* Triage on control_code */
-    lprint("control_code recived = %u\n", control_code)
+    lprint("control_code recived = %u\n", control_code);
     switch(control_code){
         case 0: author_response(sock_index);
                 break;
