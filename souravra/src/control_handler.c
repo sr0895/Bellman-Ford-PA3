@@ -105,8 +105,8 @@ int create_router_sock(uint16_t routing_port) {
         ERROR("bind() failed");
 
     lprint("routing socket bound on port %ld\n", routing_port);
-    FD_SET(router_socket, &master_list);
-    head_fd = router_socket;
+    FD_SET(sock, &master_list);
+    if(head_fd < sock) head_fd = sock;
     return sock;
 }
 
