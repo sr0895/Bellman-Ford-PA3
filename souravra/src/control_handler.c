@@ -422,9 +422,10 @@ void handle_timer_event() {
 void send_routing_table_to_peers() {
     lprint("sending my routing table to ppers\n");
     char* distance_vector = get_distace_vector_tosend();
+    lprint("created distance vector\n");
     for (int i = 0; i < 5; i++) {
-        if(topology[i].link_cost < UINT16_MAX) {
-            lprint("router %ls is peer, sending distance vevtor to it\n", topology[i].router_id);
+        if((topology[i].link_cost < UINT16_MAX) && (topology[i].link_cost > 0)) {
+            lprint("router %ld is peer, sending distance vevtor to it\n", topology[i].router_id);
             assert(sendtoALL(distance_vector, DISTANCE_VECTOR_SIZE, topology[i].ip_addr, topology[i].routing_port) == DISTANCE_VECTOR_SIZE);
         }
     }
