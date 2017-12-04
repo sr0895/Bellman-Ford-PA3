@@ -8,7 +8,7 @@
 
 typedef enum {FALSE, TRUE} bool;
 
-#define DISTANCE_VECTOR_SIZE 68; // 68 bytes
+#define DISTANCE_VECTOR_SIZE 68 // 68 bytes
 
 #define ERROR(err_msg) {perror(err_msg); exit(EXIT_FAILURE);}
 

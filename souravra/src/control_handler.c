@@ -215,7 +215,7 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
     
     memcpy(&periodic_interval, cntrl_payload + sizeof(num_routers), sizeof(periodic_interval));
     periodic_interval = htons(periodic_interval);
-    lprint("periodic_interval %ld\n", periodic_interval)
+    lprint("periodic_interval %ld\n", periodic_interval);
 
     // set periodic timer
     periodic_timer.tv_sec = periodic_interval;
@@ -259,9 +259,9 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
     }
 
     convert_topology_ntoh();
-    lprint("converted to host\n");
+    lprint("converted topology to host\n");
     // setup listner on routing port
-    router_socket = create_router_sock();
+    router_socket = create_router_sock(topology[my_id].routing_port);
 
     // setup listner on data port
 
@@ -382,25 +382,29 @@ bool control_recv_hook(int sock_index)
 char* get_distace_vector_tosend() {
     char* distance_vector = (char* )malloc(DISTANCE_VECTOR_SIZE);
     int offset = 0;
-    uint16_t num_router = 5;
+    uint16_t num_router = 5;num_router = htons(num_router);
 
-    memcpy(distance_vector + offset, &htons(num_router), sizeof(num_router));
-    offset += sizeof(num_router);
+    memcpy(distance_vector + offset, &(num_router), sizeof(num_router));
+    offset += sizeof(num_router); num_router =0;
 
-    memcpy(distance_vector + offset, &htons(topology[my_id].routing_port), sizeof(topology[my_id].routing_port));
+    uint16_t r_p = htons(topology[my_id].routing_port);
+    memcpy(distance_vector + offset, &r_p, sizeof(topology[my_id].routing_port));
     offset += sizeof(topology[my_id].routing_port);
 
-    memcpy(distance_vector + offset, &htons(topology[my_id].ip_addr), sizeof(topology[my_id].ip_addr));
+    uint32_t i_p = htons(topology[my_id].ip_addr);
+    memcpy(distance_vector + offset, &i_p, sizeof(topology[my_id].ip_addr));
     offset += sizeof(topology[my_id].ip_addr);
 
     for (int i = 0; i < 5; i++) {
-        memcpy(distance_vector + offset, &htons(topology[ntohs(routing_table[i].router_id)].ip_addr), sizeof(topology[i].ip_addr));
+        i_p = htons(topology[ntohs(routing_table[i].router_id)].ip_addr);
+        memcpy(distance_vector + offset, &i_p, sizeof(topology[i].ip_addr));
         offset += sizeof(topology[i].ip_addr);
 
-        memcpy(distance_vector + offset, &htons(topology[ntohs(routing_table[i].router_id)].routing_port), sizeof(topology[i].routing_port));
+        r_p = htons(topology[ntohs(routing_table[i].router_id)].routing_port);
+        memcpy(distance_vector + offset, &r_p, sizeof(topology[i].routing_port));
         offset += sizeof(topology[i].routing_port);
 
-        memcpy(distance_vector + offset, &0, sizeof(num_router));
+        memcpy(distance_vector + offset, &num_router, sizeof(num_router)); // zeroes
         offset += sizeof(num_router);
 
         memcpy(distance_vector + offset, &routing_table[i].router_id, sizeof(routing_table[i].router_id)); // routing table is in ntoh
@@ -423,14 +427,14 @@ void send_routing_table_to_peers() {
     for (int i = 0; i < 5; i++) {
         if(topology[i].link_cost < UINT16_MAX) {
             lprint("router %ls is peer, sending distance vevtor to it\n", topology[i].router_id);
-            assert(sendtoAll(distance_vector, DISTANCE_VECTOR_SIZE, topology[i].ip_addr, topology[i].routing_port) == DISTANCE_VECTOR_SIZE);
+            assert(sendtoALL(distance_vector, DISTANCE_VECTOR_SIZE, topology[i].ip_addr, topology[i].routing_port) == DISTANCE_VECTOR_SIZE);
         }
     }
 }
 
 bool routing_recv_hook() {
     char* distance_vector = (char* )malloc(DISTANCE_VECTOR_SIZE);
-    assert(recvfromALL(routing_port, distance_vector, DISTANCE_VECTOR_SIZE) == DISTANCE_VECTOR_SIZE);
+    assert(recvfromALL(router_socket, distance_vector, DISTANCE_VECTOR_SIZE) == DISTANCE_VECTOR_SIZE);
     update_routing_table(distance_vector);
 }
 
@@ -440,7 +444,7 @@ void update_routing_table(char* distance_vector) {
     num_routers = htons(num_routers);
     assert(num_routers == 5);
 
-    uint16_t sender_port = memcpy(&sender_port, distance_vector + sizeof(num_routers), sizeof(sender_port));
+    uint16_t sender_port; memcpy(&sender_port, distance_vector + sizeof(num_routers), sizeof(sender_port));
     sender_port = ntohs(sender_port);
     
     // find sender id
