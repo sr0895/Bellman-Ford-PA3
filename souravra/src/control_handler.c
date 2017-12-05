@@ -446,9 +446,7 @@ void update_routing_table(char* distance_vector) {
     assert(num_routers == 5);
 
     uint16_t sender_port; memcpy(&sender_port, distance_vector + sizeof(num_routers), sizeof(sender_port));
-    lprint("s_p_n %d\n", sender_port);
     sender_port = ntohs(sender_port);
-    lprint("s_p_h %d\n", sender_port);
 
     // find sender id
     uint16_t sender_id = 0;
