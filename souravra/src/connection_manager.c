@@ -76,7 +76,7 @@ void main_loop()
                 }
             } else {
                 lprint("Timer has fired\n");
-                //handle_timer_event();
+                handle_timer_event();
             }
         }
     }
