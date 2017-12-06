@@ -35,16 +35,17 @@ void main_loop()
 
     while(running_app){
         watch_list = master_list;
-        selret = select(head_fd+1, &watch_list, NULL, NULL, NULL);
+        selret = select(head_fd+1, &watch_list, NULL, NULL, &periodic_timer);
 
         if(selret < 0)
             ERROR("ERROR: select failed.");
 
         /* Loop through file descriptors to check which ones are ready */
-        for(sock_index=0; sock_index<=head_fd; sock_index+=1, &periodic_timer){
+        int any_fd_set = 0;
+        for(sock_index=0; sock_index<=head_fd; sock_index+=1 ) {
 
             if(FD_ISSET(sock_index, &watch_list)){
-
+                any_fd_set = 1;
                 /* control_socket */
                 if(sock_index == control_socket){
                     fdaccept = new_control_conn(sock_index);
@@ -77,10 +78,12 @@ void main_loop()
                         ERROR("Unknown socket index");
                     }
                 }
-            } else {
-                lprint("DEBUG: Timer has fired %d\n", periodic_timer.tv_sec);
-                handle_timer_event();
             }
+        }
+
+        if(!any_fd_set) {
+            lprint("DEBUG: Timer has fired %d\n", periodic_timer.tv_sec);
+            handle_timer_event();
         }
     }
     lprint("app stopped .........\n");
