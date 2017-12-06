@@ -306,6 +306,7 @@ int crash(int sock_index) {
 
 bool control_recv_hook(int sock_index)
 {
+    lprint("DEBUG: control_recv_hook on fd %d\n", sock_index);
     char *cntrl_header, *cntrl_payload;
     uint8_t control_code;
     uint16_t payload_len;
@@ -319,6 +320,7 @@ bool control_recv_hook(int sock_index)
         free(cntrl_header);
         return FALSE;
     }
+    lprint("DEBUG: control_recv_hook recvALL cntrl_header\n");
 
     /* Get control code and payload length from the header */
     #ifdef PACKET_USING_STRUCT
@@ -331,11 +333,13 @@ bool control_recv_hook(int sock_index)
         struct CONTROL_HEADER *header = (struct CONTROL_HEADER *) cntrl_header;
         control_code = header->control_code;
         payload_len = ntohs(header->payload_len);
+        lprint("DEBUG: control_recv_hook payload_len %d on PACKET_USING_STRUCT\n");
     #endif
     #ifndef PACKET_USING_STRUCT
         memcpy(&control_code, cntrl_header+CNTRL_CONTROL_CODE_OFFSET, sizeof(control_code));
         memcpy(&payload_len, cntrl_header+CNTRL_PAYLOAD_LEN_OFFSET, sizeof(payload_len));
         payload_len = ntohs(payload_len);
+        lprint("DEBUG: control_recv_hook payload_len %d\n");
     #endif
 
     free(cntrl_header);
@@ -350,6 +354,7 @@ bool control_recv_hook(int sock_index)
             free(cntrl_payload);
             return FALSE;
         }
+        lprint("DEBUG: control_recv_hook recvALL payload\n");
     }
 
     /* Triage on control_code */
