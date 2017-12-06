@@ -71,10 +71,11 @@ void main_loop()
                     lprint("DEBUG: Existing connection select io on %d\n", sock_index);
                     if(isControl(sock_index)){
                         if(!control_recv_hook(sock_index)) FD_CLR(sock_index, &master_list);
+                    }else {
+                        //else if isData(sock_index);
+                        lprint("ERROR: Unknown socket index\n");
+                        ERROR("Unknown socket index");
                     }
-                    //else if isData(sock_index);
-                    lprint("ERROR: Unknown socket index\n");
-                    else ERROR("Unknown socket index");
                 }
             } else {
                 lprint("DEBUG: Timer has fired\n");
