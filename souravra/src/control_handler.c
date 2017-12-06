@@ -317,6 +317,8 @@ int handle_update(int sock_index, char* cntrl_payload) {
     uint16_t cost; memcpy(&router_id, cntrl_payload + sizeof(router_id), sizeof(cost));
     cost = ntohs(cost);
 
+    lprint("DEBUG: handle_update rid %d new cost %d \n", router_id, cost);
+
     uint16_t prev_link_cost;
     for (int i = 0; i < 5; i++) {
        if (topology[i].router_id == router_id) {
@@ -324,30 +326,36 @@ int handle_update(int sock_index, char* cntrl_payload) {
             topology[i].link_cost = cost;
        }
     }
+    lprint("DEBUG: handle_update prev_link_cost cost %d \n", prev_link_cost);
+
 
     for (int i = 0; i < 5; i++) {
         if ((ntohs(routing_table[i].router_id) == router_id) && (ntohs(routing_table[i].next_hop) == router_id)) {
-             routing_table[i].path_cost = htons(cost);
-             continue;
+            lprint("DEBUG: handle_update direct link_cost update\n");
+            routing_table[i].path_cost = htons(cost);
+            continue;
         }
 
        if ((ntohs(routing_table[i].router_id) == router_id) && (ntohs(routing_table[i].path_cost) > cost)) {
+            lprint("DEBUG: handle_update direct link_cost decreased, old cost %d\n", ntohs(routing_table[i].path_cost));
             routing_table[i].path_cost = htons(cost);
             routing_table[i].next_hop = routing_table[i].router_id;
             continue;
        }
 
        if (ntohs(routing_table[i].next_hop) == router_id) {
+            lprint("DEBUG: handle_update next hop cost update for dest %d\n", ntohs(routing_table[i].router_id));
             uint32_t updated_cost = cost; updated_cost =  (ntohs(routing_table[i].path_cost) - prev_link_cost) + updated_cost;
             updated_cost = (updated_cost < UINT16_MAX)? updated_cost : UINT16_MAX;
+            lprint("DEBUG: handle_update updated path cost %ld\n", updated_cost);
 
-            uint16_t direct_cost, r_id;
+            uint16_t direct_cost;
             for (int j = 0; j < 5; j++) {
                 if (topology[j].router_id == ntohs(routing_table[i].router_id)) {
                     direct_cost = topology[j].link_cost;
                 }
             }
-
+            lprint("DEBUG: handle_update dircect cost to dest %d\n", direct_cost);
             if (direct_cost <= updated_cost) {
                 routing_table[i].next_hop = routing_table[i].router_id; // go directly
                 routing_table[i].path_cost = htons(direct_cost);
