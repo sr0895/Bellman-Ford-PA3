@@ -339,21 +339,21 @@ int handle_update(int sock_index, char* cntrl_payload) {
 
        if (ntohs(routing_table[i].next_hop) == router_id) {
             uint32_t updated_cost = cost; updated_cost =  (ntohs(routing_table[i].path_cost) - prev_link_cost) + updated_cost;
-            updated_cost = (updated_cost < UINT16_MAX): updated_cost ? UINT16_MAX;
+            updated_cost = (updated_cost < UINT16_MAX)? updated_cost : UINT16_MAX;
 
-            uint16_t direct_cost;
+            uint16_t direct_cost, r_id;
             for (int j = 0; j < 5; j++) {
-                if (topology[j].router_id == ntohs(routing_table[i].next_hop)) {
+                if (topology[j].router_id == ntohs(routing_table[i].router_id)) {
                     direct_cost = topology[j].link_cost;
                 }
             }
 
             if (direct_cost <= updated_cost) {
-                routing_table[i].next_hop = htons(routing_table);
+                routing_table[i].next_hop = routing_table[i].router_id; // go directly
                 routing_table[i].path_cost = htons(direct_cost);
             } else {
                 direct_cost = updated_cost; // downsize as its already less than 16 bit int
-                routing_table[i].path_cost = htons(direct_cost)
+                routing_table[i].path_cost = htons(direct_cost);
             }
        }
     }
