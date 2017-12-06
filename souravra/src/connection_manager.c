@@ -78,6 +78,7 @@ void main_loop()
                     }
                 }
             } else {
+                lprint("DEBUG: Timer has fired\n");
                 handle_timer_event();
             }
         }

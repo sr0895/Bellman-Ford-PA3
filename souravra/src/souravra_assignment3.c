@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <time.h>
 #include "../include/global.h"
 #include "../include/connection_manager.h"
 
@@ -52,6 +53,17 @@ void lprint(const char* format, ...) {
 
     va_start(args, format);
     FILE* file = fopen("log_pa3.txt", "a");
+
+    time_t timer;
+    char buffer[27];
+    struct tm* tm_info;
+
+    time(&timer);
+    tm_info = localtime(&timer);
+
+    strftime(buffer, 27, "%Y-%m-%d %H:%M:%S ", tm_info);
+
+    vfprintf(file, buffer);
     vfprintf(file, format, args);
     fclose(file);
     va_end(args);
