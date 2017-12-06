@@ -86,8 +86,7 @@ void main_loop()
             // have to restore timer value as select zeoes them.... bitch what.
             periodic_timer_select.tv_sec = periodic_timer.tv_sec;
         }
-
-
+        
     }
     lprint("app stopped .........\n");
 }

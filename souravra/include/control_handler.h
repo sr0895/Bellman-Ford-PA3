@@ -16,6 +16,7 @@ struct TOPOLOGY
     uint16_t data_port;
     uint16_t link_cost;
     uint32_t ip_addr;
+    uint16_t is_peer;
 } topology[5];
 
 #ifdef PACKET_USING_STRUCT
@@ -33,6 +34,7 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len);
 int init_routing_table();
 int send_routing_table(int sock_index);
 int crash(int sock_index);
+int handle_update(int sock_index, char* cntrl_payload);
 
 int create_router_sock(uint16_t routing_port);
 

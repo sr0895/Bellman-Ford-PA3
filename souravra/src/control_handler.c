@@ -148,12 +148,13 @@ bool isControl(int sock_index)
 void print_topo() {
     for (int i = 0; i < 5; ++i)
     {
-        lprint("ith topology %d, id %d, rp %d, dp %d, lc %d, ip %lld\n", i,
+        lprint("ith topology %d, id %d, rp %d, dp %d, lc %d, ip %lld, peer %d\n", i,
                 topology[i].router_id,
                 topology[i].routing_port,
                 topology[i].data_port,
                 topology[i].link_cost,
-                topology[i].ip_addr);
+                topology[i].ip_addr,
+                topology[i].is_peer);
     }
 }
 
@@ -241,10 +242,15 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
         memcpy(&topology[i].ip_addr, cntrl_payload + offset, sizeof(topology[i].ip_addr));
         offset += sizeof(topology[i].ip_addr);
 
-        if (topology[i].link_cost == 0)
-        {
+        if (topology[i].link_cost == 0) {
             /* me */
             my_id = i;
+        }
+
+        if (ntohs(topology[i].link_cost) < UINT16_MAX) {
+            topology[i].is_peer = 1;
+        } else {
+            topology[i].is_peer = 0;
         }
     }
 
@@ -301,6 +307,59 @@ int crash(int sock_index) {
     remove_control_conn(control_socket);
     //remove_control_conn(router_socket);
     //remove_control_conn(data_socket);
+    return 0;
+}
+
+int handle_update(int sock_index, char* cntrl_payload) {
+    uint16_t router_id; memcpy(&router_id, cntrl_payload, sizeof(router_id));
+    router_id = ntohs(router_id);
+
+    uint16_t cost; memcpy(&router_id, cntrl_payload + sizeof(router_id), sizeof(cost));
+    cost = ntohs(cost);
+
+    uint16_t prev_link_cost;
+    for (int i = 0; i < 5; i++) {
+       if (topology[i].router_id == router_id) {
+            prev_link_cost = topology[i].link_cost;
+            topology[i].link_cost = cost;
+       }
+    }
+
+    for (int i = 0; i < 5; i++) {
+        if ((ntohs(routing_table[i].router_id) == router_id) && (ntohs(routing_table[i].next_hop) == router_id)) {
+             routing_table[i].path_cost = htons(cost);
+             continue;
+        }
+
+       if ((ntohs(routing_table[i].router_id) == router_id) && (ntohs(routing_table[i].path_cost) > cost)) {
+            routing_table[i].path_cost = htons(cost);
+            routing_table[i].next_hop = routing_table[i].router_id;
+            continue;
+       }
+
+       if (ntohs(routing_table[i].next_hop) == router_id) {
+            uint32_t updated_cost = cost; updated_cost =  (ntohs(routing_table[i].path_cost) - prev_link_cost) + updated_cost;
+            updated_cost = (updated_cost < UINT16_MAX): updated_cost ? UINT16_MAX;
+
+            uint16_t direct_cost;
+            for (int j = 0; j < 5; j++) {
+                if (topology[j].router_id == ntohs(routing_table[i].next_hop)) {
+                    direct_cost = topology[j].link_cost;
+                }
+            }
+
+            if (direct_cost <= updated_cost) {
+                routing_table[i].next_hop = htons(routing_table);
+                routing_table[i].link_cost = htons(direct_cost);
+            } else {
+                direct_cost = updated_cost; // downsize as its already less than 16 bit int
+                routing_table[i].link_cost = htons(direct_cost)
+            }
+       }
+    }
+
+    send_rep_header(sock_index, 3);
+
     return 0;
 }
 
@@ -370,6 +429,8 @@ bool control_recv_hook(int sock_index)
         case 2: send_routing_table(sock_index);
                 break;
 
+        case 3: handle_update(sock_index, cntrl_payload);
+
         case 4: crash(sock_index);
                 break;
     }
@@ -426,7 +487,7 @@ void send_routing_table_to_peers() {
     char* distance_vector = get_distace_vector_tosend();
     lprint("send_routing_table_to_peers: created distance vector\n");
     for (int i = 0; i < 5; i++) {
-        if((topology[i].link_cost < UINT16_MAX) && (topology[i].link_cost > 0)) {
+        if((topology[i].is_peer) && (topology[i].link_cost > 0)) {
             lprint("send_routing_table_to_peers: router %ld is peer, sending distance vector to it\n", topology[i].router_id);
             assert(sendtoALL(distance_vector, DISTANCE_VECTOR_SIZE, topology[i].ip_addr, topology[i].routing_port) == DISTANCE_VECTOR_SIZE);
         }
