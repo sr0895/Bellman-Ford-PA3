@@ -52,7 +52,7 @@ void main_loop()
                     /* Add to watched socket list */
                     FD_SET(fdaccept, &master_list);
                     if(fdaccept > head_fd) head_fd = fdaccept;
-                    lprint("%s\n", "DEDUG: accept on control");
+                    lprint("%s %d\n", "DEBUG: accept on control, new fd", fdaccept);
                 }
 
                 /* router_socket */
