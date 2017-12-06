@@ -314,7 +314,7 @@ int handle_update(int sock_index, char* cntrl_payload) {
     uint16_t router_id; memcpy(&router_id, cntrl_payload, sizeof(router_id));
     router_id = ntohs(router_id);
 
-    uint16_t cost; memcpy(&router_id, cntrl_payload + sizeof(router_id), sizeof(cost));
+    uint16_t cost; memcpy(&cost, cntrl_payload + sizeof(router_id), sizeof(cost));
     cost = ntohs(cost);
 
     lprint("DEBUG: handle_update rid %d new cost %d \n", router_id, cost);
@@ -365,7 +365,7 @@ int handle_update(int sock_index, char* cntrl_payload) {
             }
        }
     }
-
+    print_routing_table();
     send_rep_header(sock_index, 3);
 
     return 0;
