@@ -44,6 +44,8 @@ int main(int argc, char **argv)
     sscanf(argv[1], "%" SCNu16, &CONTROL_PORT);
     running_app = TRUE;
     periodic_timer.tv_sec = 1;
+    periodic_timer.tv_usec = 0;
+
     init(); // Initialize connection manager; This will block]
     return 0;
 }

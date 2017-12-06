@@ -78,7 +78,7 @@ void main_loop()
                     }
                 }
             } else {
-                lprint("DEBUG: Timer has fired\n");
+                lprint("DEBUG: Timer has fired %d\n", periodic_timer.tv_sec);
                 handle_timer_event();
             }
         }
