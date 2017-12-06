@@ -350,10 +350,10 @@ int handle_update(int sock_index, char* cntrl_payload) {
 
             if (direct_cost <= updated_cost) {
                 routing_table[i].next_hop = htons(routing_table);
-                routing_table[i].link_cost = htons(direct_cost);
+                routing_table[i].path_cost = htons(direct_cost);
             } else {
                 direct_cost = updated_cost; // downsize as its already less than 16 bit int
-                routing_table[i].link_cost = htons(direct_cost)
+                routing_table[i].path_cost = htons(direct_cost)
             }
        }
     }
@@ -430,6 +430,7 @@ bool control_recv_hook(int sock_index)
                 break;
 
         case 3: handle_update(sock_index, cntrl_payload);
+                break;
 
         case 4: crash(sock_index);
                 break;
