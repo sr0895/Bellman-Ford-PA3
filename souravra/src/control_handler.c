@@ -77,7 +77,7 @@ int create_control_sock()
         ERROR("listen() failed");
 
     LIST_INIT(&control_conn_list);
-    lprint("%s, %d\n", "started listing on  ", CONTROL_PORT);
+    lprint("%s, %d\n", "create_control_sock: started listing on  ", CONTROL_PORT);
 
     return sock;
 }
@@ -104,7 +104,7 @@ int create_router_sock(uint16_t routing_port) {
     if(bind(sock, (struct sockaddr *)&rountng_addr, sizeof(rountng_addr)) < 0)
         ERROR("bind() failed");
 
-    lprint("routing socket bound on port %ld\n", routing_port);
+    lprint("create_router_sock: routing socket bound on port %ld\n", routing_port);
     FD_SET(sock, &master_list);
     if(head_fd < sock) head_fd = sock;
     return sock;
@@ -169,7 +169,7 @@ void print_routing_table() {
 }
 
 int init_routing_table() {
-    lprint("init routing table, my_id %d\n", my_id);
+    lprint("init_routing_table: my_id %d\n", my_id);
     print_topo();
     uint16_t my_next_hop = UINT16_MAX;
     uint16_t cost = UINT16_MAX; 
@@ -200,7 +200,7 @@ int send_rep_header(int sock_index, int control_code) {
     char *cntrl_response_header;
     cntrl_response_header = create_response_header(sock_index, control_code, 0, 0);
     sendALL(sock_index, cntrl_response_header, CNTRL_RESP_HEADER_SIZE);
-    lprint("sent control resp header of len %d\n", CNTRL_RESP_HEADER_SIZE);
+    lprint("send_rep_header: sent control resp header of len %d\n", CNTRL_RESP_HEADER_SIZE);
     free(cntrl_response_header);
     return 0;
 }
@@ -212,41 +212,34 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
     
     memcpy(&periodic_interval, cntrl_payload + sizeof(num_routers), sizeof(periodic_interval));
     periodic_interval = htons(periodic_interval);
-    lprint("periodic_interval %ld\n", periodic_interval);
+    lprint("init_response: periodic_interval %ld\n", periodic_interval);
 
     // set periodic timer
     periodic_timer.tv_sec = periodic_interval;
 
     // update routing table
 
-    lprint("payload len %d, size of topology %ld\n", payload_len, sizeof(topology[0]) );
+    lprint("init_response: payload len %d, size of topology %ld\n", payload_len, sizeof(topology[0]) );
     assert(((payload_len - sizeof(num_routers) - sizeof(periodic_interval)) / sizeof(topology[0])) == 5);
     for (uint16_t i = 0; i < 5; i++)
     {
-        lprint("server %d\n", i);
         int offset = (i * sizeof(topology[0])) + sizeof(num_routers) + sizeof(periodic_interval);
         
         uint16_t nid; memcpy(&nid, cntrl_payload + offset, sizeof(nid)); offset+= sizeof(nid);
-        lprint("id memcpy done, id = %d, nid = %d\n", i, nid);
 
         topology[i].router_id = nid;
-        lprint("id assign done\n");
 
         memcpy(&topology[i].routing_port, cntrl_payload + offset, sizeof(topology[i].routing_port));
         offset += sizeof(topology[i].routing_port);
-        lprint("rport memcpy done\n");
 
         memcpy(&topology[i].data_port, cntrl_payload + offset, sizeof(topology[i].data_port));
         offset += sizeof(topology[i].data_port);
-        lprint("dport memcpy done\n");
 
         memcpy(&topology[i].link_cost, cntrl_payload + offset, sizeof(topology[i].link_cost));
         offset += sizeof(topology[i].link_cost);
-        lprint("cost memcpy done\n");
 
         memcpy(&topology[i].ip_addr, cntrl_payload + offset, sizeof(topology[i].ip_addr));
         offset += sizeof(topology[i].ip_addr);
-        lprint("all memcpy done\n");
 
         if (topology[i].link_cost == 0)
         {
@@ -278,7 +271,7 @@ int send_routing_table(int sock_index) {
 
     memcpy(cntrl_response_payload, routing_table, payload_len);
 
-    lprint("created payload buffer\n");
+    lprint("send_routing_table: created payload buffer\n");
     cntrl_response_header = create_response_header(sock_index, 2, 0, payload_len);
 
     response_len = CNTRL_RESP_HEADER_SIZE+payload_len;
@@ -291,7 +284,7 @@ int send_routing_table(int sock_index) {
     free(cntrl_response_payload);
 
     sendALL(sock_index, cntrl_response, response_len);
-    lprint("sent routing table, of size %d\n", response_len);
+    lprint("send_routing_table: sent routing table, of size %d\n", response_len);
     free(cntrl_response);
 }
 
@@ -358,7 +351,7 @@ bool control_recv_hook(int sock_index)
     }
 
     /* Triage on control_code */
-    lprint("control_code recived = %u\n", control_code);
+    lprint("DEBUG: control_recv_hook control_code recived = %u\n", control_code);
     switch(control_code){
         case 0: author_response(sock_index);
                 break;
@@ -421,19 +414,19 @@ void handle_timer_event() {
 }
 
 void send_routing_table_to_peers() {
-    lprint("sending my routing table to peers\n");
+    lprint("send_routing_table_to_peers\n");
     char* distance_vector = get_distace_vector_tosend();
-    lprint("created distance vector\n");
+    lprint("send_routing_table_to_peers: created distance vector\n");
     for (int i = 0; i < 5; i++) {
         if((topology[i].link_cost < UINT16_MAX) && (topology[i].link_cost > 0)) {
-            lprint("router %ld is peer, sending distance vector to it\n", topology[i].router_id);
+            lprint("send_routing_table_to_peers: router %ld is peer, sending distance vector to it\n", topology[i].router_id);
             assert(sendtoALL(distance_vector, DISTANCE_VECTOR_SIZE, topology[i].ip_addr, topology[i].routing_port) == DISTANCE_VECTOR_SIZE);
         }
     }
 }
 
 bool routing_recv_hook() {
-    lprint("got routing update\n");
+    lprint("routing_recv_hook\n");
     char* distance_vector = (char* )malloc(DISTANCE_VECTOR_SIZE);
     assert(recvfromALL(router_socket, distance_vector, DISTANCE_VECTOR_SIZE) == DISTANCE_VECTOR_SIZE);
     update_routing_table(distance_vector);
@@ -453,7 +446,7 @@ void update_routing_table(char* distance_vector) {
     for (sender_id; sender_id < 5; sender_id++) {
         if(sender_port == topology[sender_id].routing_port) {
             sender_id = topology[sender_id].router_id;
-            lprint("get distace distance_vector from %ld on port %ld\n", sender_id, sender_port);
+            lprint("update_routing_table: get distace distance_vector from %ld on port %ld\n", sender_id, sender_port);
             break;
         }
     }
@@ -463,7 +456,7 @@ void update_routing_table(char* distance_vector) {
     for (int i = 0; i < 5; i++) {
         if(routing_table[i].router_id == htons(sender_id)) {
             cost_to_sender = ntohs(routing_table[i].path_cost);
-            lprint("cost to sender %d\n",cost_to_sender);
+            lprint("update_routing_table: cost to sender %d\n",cost_to_sender);
         }
     }
 
@@ -491,7 +484,7 @@ void update_routing_table(char* distance_vector) {
         uint16_t path_cost_via_peer = cost_to_sender + hop_cost;
 
         if(path_cost_via_peer < my_cost_to_hop) {
-            lprint("found new path to %ld via %ld at cost %ld\n", ntohs(hop_id), sender_id, path_cost_via_peer);
+            lprint("update_routing_table: found new path to %ld via %ld at cost %ld\n", ntohs(hop_id), sender_id, path_cost_via_peer);
             // update routing table
             routing_table[j].next_hop = htons(sender_id); // keep network format
             routing_table[j].path_cost = htons(path_cost_via_peer);

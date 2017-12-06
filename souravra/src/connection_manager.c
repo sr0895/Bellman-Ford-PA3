@@ -38,7 +38,7 @@ void main_loop()
         selret = select(head_fd+1, &watch_list, NULL, NULL, NULL);
 
         if(selret < 0)
-            ERROR("select failed.");
+            ERROR("ERROR: select failed.");
 
         /* Loop through file descriptors to check which ones are ready */
         for(sock_index=0; sock_index<=head_fd; sock_index+=1, &periodic_timer){
@@ -52,7 +52,7 @@ void main_loop()
                     /* Add to watched socket list */
                     FD_SET(fdaccept, &master_list);
                     if(fdaccept > head_fd) head_fd = fdaccept;
-                    lprint("%s\n", "accept on control");
+                    lprint("%s\n", "DEDUG: accept on control");
                 }
 
                 /* router_socket */
@@ -68,14 +68,16 @@ void main_loop()
 
                 /* Existing connection */
                 else{
+                    lprint("DEBUG: Existing connection select io on %d\n", sock_index);
                     if(isControl(sock_index)){
                         if(!control_recv_hook(sock_index)) FD_CLR(sock_index, &master_list);
                     }
                     //else if isData(sock_index);
+                    lprint("ERROR: Unknown socket index\n");
                     else ERROR("Unknown socket index");
                 }
             } else {
-                lprint("Timer has fired\n");
+                lprint("DEBUG: Timer has fired\n");
                 handle_timer_event();
             }
         }
@@ -86,6 +88,7 @@ void main_loop()
 void init()
 {
     control_socket = create_control_sock();
+    lprint("DEBUG: control_socket %d\n", control_socket);
 
     //router_socket and data_socket will be initialized after INIT from controller
 
