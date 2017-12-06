@@ -93,6 +93,7 @@ void init()
 {
     control_socket = create_control_sock();
     lprint("DEBUG: control_socket %d\n", control_socket);
+    lprint("DEBUG: timer_init %d\n", periodic_timer.tv_sec);
 
     //router_socket and data_socket will be initialized after INIT from controller
 
