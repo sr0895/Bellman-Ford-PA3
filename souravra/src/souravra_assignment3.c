@@ -48,6 +48,7 @@ int main(int argc, char **argv)
 }
 
 void lprint(const char* format, ...) {
+    return;
     va_list args;
 
     va_start(args, format);
