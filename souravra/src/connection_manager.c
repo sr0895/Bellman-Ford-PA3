@@ -35,7 +35,7 @@ void main_loop()
 
     while(running_app){
         watch_list = master_list;
-        selret = select(head_fd+1, &watch_list, NULL, NULL, &periodic_timer);
+        selret = select(head_fd+1, &watch_list, NULL, NULL, &periodic_timer_select);
 
         if(selret < 0)
             ERROR("ERROR: select failed.");
@@ -85,6 +85,10 @@ void main_loop()
             lprint("DEBUG: Timer has fired %d\n", periodic_timer.tv_sec);
             handle_timer_event();
         }
+
+        // have to restore timer value as select zeoes them.... bitch what.
+        periodic_timer_select.tv_sec = periodic_timer.tv_sec;
+
     }
     lprint("app stopped .........\n");
 }
@@ -93,7 +97,8 @@ void init()
 {
     control_socket = create_control_sock();
     lprint("DEBUG: control_socket %d\n", control_socket);
-    lprint("DEBUG: timer_init %d\n", periodic_timer.tv_sec);
+    periodic_timer_select.tv_sec = periodic_timer.tv_sec;
+    lprint("DEBUG: timer_init %d\n", periodic_timer_select.tv_sec);
 
     //router_socket and data_socket will be initialized after INIT from controller
 
