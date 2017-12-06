@@ -101,7 +101,7 @@ ssize_t sendtoALL(char *buffer, ssize_t nbytes, uint32_t ip, uint16_t port)
 bool is_socket_open(int sock_index) {
     int error = 0;
     socklen_t len = sizeof (error);
-    int retval = getsockopt (socket_fd, SOL_SOCKET, SO_ERROR, &error, &len);
+    int retval = getsockopt (sock_index, SOL_SOCKET, SO_ERROR, &error, &len);
 
     return (retval !=0) || (error != 0);
 }
