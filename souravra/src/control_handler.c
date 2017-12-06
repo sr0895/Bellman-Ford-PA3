@@ -220,11 +220,11 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
 
     // update routing table
 
-    lprint("init_response: payload len %d, size of topology %ld\n", payload_len, sizeof(topology[0]) );
-    assert(((payload_len - sizeof(num_routers) - sizeof(periodic_interval)) / sizeof(topology[0])) == 5);
+    lprint("init_response: payload len %d, size of topology %ld\n", payload_len, 12 );
+    assert(((payload_len - sizeof(num_routers) - sizeof(periodic_interval)) / 12) == 5);
     for (uint16_t i = 0; i < 5; i++)
     {
-        int offset = (i * sizeof(topology[0])) + sizeof(num_routers) + sizeof(periodic_interval);
+        int offset = (i * 12) + sizeof(num_routers) + sizeof(periodic_interval);
         
         uint16_t nid; memcpy(&nid, cntrl_payload + offset, sizeof(nid)); offset+= sizeof(nid);
 
