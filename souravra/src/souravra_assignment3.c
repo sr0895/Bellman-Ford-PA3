@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 }
 
 void lprint(const char* format, ...) {
-    va_list args;
+    va_list args, empty;
 
     va_start(args, format);
     FILE* file = fopen("log_pa3.txt", "a");
@@ -63,7 +63,8 @@ void lprint(const char* format, ...) {
 
     strftime(buffer, 27, "%Y-%m-%d %H:%M:%S ", tm_info);
 
-    vfprintf(file, buffer);
+    va_start(empty, buffer);
+    vfprintf(file, buffer, empty);
     vfprintf(file, format, args);
     fclose(file);
     va_end(args);
