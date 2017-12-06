@@ -103,6 +103,6 @@ bool is_socket_open(int sock_index) {
     socklen_t len = sizeof (error);
     int retval = getsockopt (sock_index, SOL_SOCKET, SO_ERROR, &error, &len);
 
-    return (retval !=0) || (error != 0);
+    return !(retval || error) ;
 }
 
