@@ -316,6 +316,7 @@ bool control_recv_hook(int sock_index)
     bzero(cntrl_header, CNTRL_HEADER_SIZE);
 
     if(recvALL(sock_index, cntrl_header, CNTRL_HEADER_SIZE) < 0){
+        lprint("ERROR: recvALL failed on fd %d, is_socket_open = %d\n", sock_index, is_socket_open(sock_index));
         remove_control_conn(sock_index);
         free(cntrl_header);
         return FALSE;
@@ -333,13 +334,13 @@ bool control_recv_hook(int sock_index)
         struct CONTROL_HEADER *header = (struct CONTROL_HEADER *) cntrl_header;
         control_code = header->control_code;
         payload_len = ntohs(header->payload_len);
-        lprint("DEBUG: control_recv_hook payload_len %d on PACKET_USING_STRUCT\n");
+        lprint("DEBUG: control_recv_hook payload_len %d on PACKET_USING_STRUCT\n", payload_len);
     #endif
     #ifndef PACKET_USING_STRUCT
         memcpy(&control_code, cntrl_header+CNTRL_CONTROL_CODE_OFFSET, sizeof(control_code));
         memcpy(&payload_len, cntrl_header+CNTRL_PAYLOAD_LEN_OFFSET, sizeof(payload_len));
         payload_len = ntohs(payload_len);
-        lprint("DEBUG: control_recv_hook payload_len %d\n");
+        lprint("DEBUG: control_recv_hook payload_len %d\n", payload_len);
     #endif
 
     free(cntrl_header);

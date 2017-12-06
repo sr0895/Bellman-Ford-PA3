@@ -36,7 +36,7 @@ ssize_t recvALL(int sock_index, char *buffer, ssize_t nbytes)
 {
     ssize_t bytes = 0;
     bytes = recv(sock_index, buffer, nbytes, 0);
-
+    lprint("DEBUG: recvAll initial bytes %d out of %d\n", bytes, nbytes);
     if(bytes == 0) return -1;
     while(bytes != nbytes)
         bytes += recv(sock_index, buffer+bytes, nbytes-bytes, 0);
@@ -50,11 +50,11 @@ ssize_t recvfromALL(int sock_index, char *buffer, ssize_t nbytes)
     socklen_t fromlen = sizeof(addr);
     ssize_t bytes = 0;
     bytes = recvfrom(sock_index, buffer, nbytes, 0, (struct sockaddr*) &addr, &fromlen);
-
+    lprint("DEBUG: recvfromALL initial bytes %d out of %d\n", bytes, nbytes);
     if(bytes == 0) return -1;
     while(bytes != nbytes)
         bytes += recvfrom(sock_index, buffer+bytes, nbytes-bytes, 0, (struct sockaddr*) &addr, &fromlen);
-    lprint("recived from all\n");
+    lprint("DEBUG: recvfromALL\n");
     return bytes;
 }
 
@@ -62,11 +62,13 @@ ssize_t sendALL(int sock_index, char *buffer, ssize_t nbytes)
 {
     ssize_t bytes = 0;
     bytes = send(sock_index, buffer, nbytes, 0);
+    lprint("DEBUG: sendALL initial bytes %d out of %d\n", bytes, nbytes);
 
     if(bytes <= 0) return -1;
     while(bytes != nbytes)
         bytes += send(sock_index, buffer+bytes, nbytes-bytes, 0);
-
+    lprint("DEBUG: sendALL\n");
+    
     return bytes;
 }
 
@@ -89,12 +91,12 @@ ssize_t sendtoALL(char *buffer, ssize_t nbytes, uint32_t ip, uint16_t port)
 
     char str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(ip4addr.sin_addr), str, INET_ADDRSTRLEN);
-    lprint("initial send bytes %d, outof %d tp %ld, ip %s\n", bytes, nbytes, port, str);
+    lprint("DEBUG: sendtoALL initial send bytes %d, outof %d tp %ld, ip %s\n", bytes, nbytes, port, str);
 
     if(bytes <= 0) return -1;
     while(bytes != nbytes)
         bytes += sendto(sockfd, buffer+bytes, nbytes-bytes, 0, to, sizeof(ip4addr));
-    lprint("sent all\n");
+    lprint("DEBUG: sendtoALL sent all\n");
     return bytes;
 }
 
