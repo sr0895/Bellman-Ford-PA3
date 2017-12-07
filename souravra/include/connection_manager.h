@@ -5,6 +5,7 @@
 
 int control_socket, router_socket, data_socket;
 uint16_t periodic_interval;
+uint16_t timer_fire_count_init;
 int my_id; // -1
 struct timeval periodic_timer, periodic_timer_select; // select zeros out the timer value on each call --- yaa bitch
 
