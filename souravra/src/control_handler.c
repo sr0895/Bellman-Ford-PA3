@@ -254,6 +254,8 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
         }
     }
 
+    send_rep_header(sock_index, 1);
+
     convert_topology_ntoh();
     lprint("converted topology to host\n");
     // setup listner on routing port
@@ -263,8 +265,6 @@ int init_response(int sock_index, char* cntrl_payload, uint16_t payload_len) {
 
     // init routing table
     init_routing_table();
-
-    send_rep_header(sock_index, 1);
 
     lprint("DEBUG: sock_index = %d, is_up =%d\n", sock_index, is_socket_open(sock_index));
 }
