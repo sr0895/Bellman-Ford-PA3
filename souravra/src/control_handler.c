@@ -488,7 +488,7 @@ char* get_distace_vector_tosend() {
 
 void handle_timer_event() {
     if (!periodic_interval) return;
-    if (periodic_timer && (timer_fire_count_init < 1)) { // don't do anything on first timeout as its from before init
+    if (periodic_interval && (timer_fire_count_init < 1)) { // don't do anything on first timeout as its from before init
         timer_fire_count_init++;
         return;
     }
