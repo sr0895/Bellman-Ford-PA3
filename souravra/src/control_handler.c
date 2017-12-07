@@ -465,11 +465,11 @@ char* get_distace_vector_tosend() {
     offset += sizeof(topology[my_id].ip_addr);
 
     for (int i = 0; i < 5; i++) {
-        i_p = htonl(topology[ntohs(routing_table[i].router_id)].ip_addr);
+        i_p = htonl(topology[i].ip_addr); // routing table and topoplogy have same order
         memcpy(distance_vector + offset, &i_p, sizeof(topology[i].ip_addr));
         offset += sizeof(topology[i].ip_addr);
 
-        r_p = htons(topology[ntohs(routing_table[i].router_id)].routing_port);
+        r_p = htons(topology[i].routing_port);
         memcpy(distance_vector + offset, &r_p, sizeof(topology[i].routing_port));
         offset += sizeof(topology[i].routing_port);
 
